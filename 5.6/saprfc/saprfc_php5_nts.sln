@@ -1,0 +1,17 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Saprfc PHP 5.2.8 NTS - RFC 7.10", "saprfc_php5_nts.vcproj", "{89AC1FF2-3486-4908-A584-5E60F711DA6B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release_TS|Win32 = Release_TS|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89AC1FF2-3486-4908-A584-5E60F711DA6B}.Release_TS|Win32.ActiveCfg = Release_TS|Win32
+		{89AC1FF2-3486-4908-A584-5E60F711DA6B}.Release_TS|Win32.Build.0 = Release_TS|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

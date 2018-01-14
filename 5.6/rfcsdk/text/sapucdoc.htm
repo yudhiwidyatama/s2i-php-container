@@ -1,0 +1,1094 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Unicode Conforming C Programming</title>
+<style>
+<!--
+code         { font-family: Courier }
+-->
+</style>
+</head>
+
+<body>
+
+<h1><a name="Guideline">Guidelines for Unicode Interface Conformant C/C++ Programming</a></h1>
+
+<table height="8326">
+  <tr>
+    <td height="62"><ul>
+      <ul>
+        <p>This section describes rules which must be applied to a C/C++ program source when both 
+        conventional character and Unicode are to be supported with a single source. </p>
+      </ul>
+    </ul>
+    </td>
+  </tr>
+  <tr>
+    <td height="59"><ul>
+      <ul>
+        <p><a NAME="CharacterDataTypes"></a></p>
+        <font color="#773400"><b><p>Character Data Types</b></font> </p>
+      </ul>
+    </ul>
+    </td>
+  </tr>
+  <tr>
+    <td height="360"><blockquote>
+      <blockquote>
+        <p>As replacement for standard type <font face="Courier New">CHAR</font> several data  
+        types have been introduced, to document the content of the data type and switch from <font 
+        face="Courier New">CHAR</font> to <font face="Courier New">WCHAR_T </font>in Unicode  
+        compilation if necessary.</p>
+        <p><strong>Note</strong>: for Unicode we use the UTF-16 encoding on all 
+        platforms. On platforms where wchar_t is not UTF-16 encoded we map 
+        SAP_UC to unsigned short instead of wchar_t. Hence the type wchar_t has 
+        a generic meaning in this document.</p>
+        <table border="1" height="78" width="666">
+          <tr>
+            <td bgColor="#000080" vAlign="top" width="138" height="30"><font color="#ffffff" size="2"><b>SAP 
+            type</b></font></td>
+            <td bgColor="#000080" vAlign="top" width="248" height="30"><font color="#ffffff" size="2"><b>meaning</b></font></td>
+            <td bgColor="#000080" vAlign="top" width="121" height="30"><font color="#ffffff" size="2"><b>type 
+            mapping in non Unicode mode</b></font></td>
+            <td bgColor="#000080" vAlign="top" width="135" height="30"><font color="#ffffff" size="2"><b>type 
+            mapping in Unicode mode</b></font></td>
+          </tr>
+          <tr>
+            <td vAlign="top" width="138" height="14"><font size="2">SAP_UC</font></td>
+            <td vAlign="top" width="248" height="14"><font size="2">zero terminated string of text data</font></td> 
+            <td vAlign="top" width="121" height="14" align="center"><font size="2">char</font></td> 
+            <td vAlign="top" width="135" height="14" align="center"><font size="2">wchar_t</font></td> 
+          </tr> 
+          <tr> 
+            <td vAlign="top" width="138" height="15"><font size="2">SAP_CHAR</font></td> 
+            <td vAlign="top" width="248" height="15"><font size="2">blank padded string of text data</font></td> 
+            <td vAlign="top" width="121" height="15" align="center"><font size="2">char</font></td> 
+            <td vAlign="top" width="135" height="15" align="center"><font size="2">wchar_t</font></td> 
+          </tr> 
+          <tr> 
+            <td vAlign="top" width="138" height="15"><font size="2">SAP_RAW</font></td> 
+            <td vAlign="top" width="248" height="15"><font size="2">binary data</font></td> 
+            <td vAlign="top" width="163" height="15" colspan="2" align="center"><font size="2">unsigned  
+            char</font></td> 
+          </tr> 
+          <tr> 
+            <td vAlign="top" width="138" height="16"><font size="2">SAP_SRAW</font></td> 
+            <td vAlign="top" width="248" height="16"><font size="2">binrary data, signed  
+            interpretation</font></td> 
+            <td vAlign="top" width="163" height="16" colspan="2" align="center"><font size="2">signed  
+            char</font></td> 
+          </tr> 
+          <tr> 
+            <td vAlign="top" width="138" height="16"><font size="2">SAP_UC_MB</font></td> 
+            <td vAlign="top" width="248" height="16"><font size="2">multibyte encoding for SAP_UC<br> 
+            this is equivalent to SAP_UC in non-Unicode mode and UTF8 in Unicode mode<br> 
+            Can be used to write data to files or to call platform functions with character parameters</font></td> 
+            <td vAlign="top" width="163" height="16" colspan="2" align="center"><font size="2">char</font></td> 
+          </tr> 
+          <tr> 
+            <td vAlign="top" width="138" height="16"><font size="2">SAP_B7</font></td> 
+            <td vAlign="top" width="248" height="16"><font size="2">text data without special national  
+            characters (7-Bit ASCII or EBCDIC equivalent)</font></td> 
+            <td vAlign="top" width="163" height="16" colspan="2" align="center"><font size="2">char</font></td> 
+          </tr> 
+          <tr> 
+            <td vAlign="top" width="138" height="15"><font size="2">SAP_B8</font></td> 
+            <td vAlign="top" width="248" height="15"><font size="2">caution: this type has been                                           
+            missused and should be replaced by SAP_B7 or SAP_UC_MB<br>                                          
+            original purpose:<br>                                          
+            text data coded in the current system codepage set by setlocale, maybe multibyte codepage<br>                                          
+            interface data type for calling platform functions with character&nbsp; parameters</font></td>                                          
+            <td vAlign="top" width="163" height="15" colspan="2" align="center"><font size="2">char</font></td>                                          
+          </tr>                                          
+          <tr>                                          
+            <td vAlign="top" width="138" height="15"><font size="2">SAP_UTF8</font></td>                                          
+            <td vAlign="top" width="248" height="15"><font size="2">text data coded in UTF8 (multibyte                                           
+            encoding for unicode)<br>                                          
+            interface datatype for external communication (e.g RFC)<br>                                          
+            avoid problems with endian mismatch</font></td>                                          
+            <td vAlign="top" width="163" height="15" colspan="2" align="center"><font size="2">unsigned                                           
+            char</font></td>                                          
+          </tr>                                          
+        </table>                                          
+      </blockquote>                                          
+    </blockquote>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td valign="bottom"><blockquote>                                          
+      <blockquote>                                          
+        <p><font color="#000000">This guideline also describes the functions provided for                                           
+        data types SAP_UC, SAP_CHAR, and SAP_RAW.&nbsp; </font><font color="#773400"><b></p>                                         
+        </b></font>                                         
+      </blockquote>                                         
+    </blockquote>                                         
+    </td>                                         
+  </tr>                                         
+  <tr>                                         
+    <td height="74" valign="bottom"><blockquote>                                         
+      <blockquote>                                         
+        <p><font color="#773400"><a NAME="CharacterDataTypesConversion"></a><b>Character Data Type                                          
+        Conversion of existing code</b></font></p>                                         
+      </blockquote>                                         
+    </blockquote>                                         
+    </td>                                         
+  </tr>                                         
+  <tr>                                         
+    <td valign="top"><ul>                                         
+      <ul>                                         
+        <p>For unconverted source codem replacement of data types should be done in two steps. The                                          
+        first step can be done by the automatic conversion tool ccQ (See option -convertuc of the                                          
+        mapro command).</p>                                         
+        <p>The data type <font size="2" face="Courier New">char</font> will be substituted by <font                                          
+        size="2" face="Courier New">SAP_UC</font>. If you prefer to substitute type <font size="2"                                          
+        face="Courier New">char</font> manually, you can suppress the automatic substitution, cf                                           
+        the online help of the mapro command..&nbsp; </p>                                          
+        <p>The data type <font size="2" face="Courier New">unsigned char</font> will be                                           
+        substituted by <font size="2" face="Courier New">SAP_BYTE.</font></p>                                          
+        <p>The data type <font size="2" face="Courier New">signed char</font><font size="2"> will                                           
+        be substituted by </font><font size="2" face="Courier New">SAP_SRAW.</font></p>                                          
+        <p>The data type <font size="2" face="Courier New">SAP_CHAR</font><font size="2"> remains                                           
+        unchanged.</font></p>                                          
+        <p>In the second step the data type <font size="2" face="Courier New">SAP_BYTE</font> must                                           
+        be divided into <font size="2" face="Courier New">SAP_UC</font><font size="2"> or </font><font                                          
+        size="2" face="Courier New">SAP_RAW</font>, i.e. into text data and raw data. There will                                           
+        also be cases where <font size="2" face="Courier New">SAP_UC</font> (former <font size="2"                                          
+        face="Courier New">char</font>) was not used for text but actually for bytes which do not                                           
+        contain text. In these cases it must be replaced by <font size="2" face="Courier New">SAP_RAW</font>.&nbsp;The                                           
+        second step must be done manually. In many cases the ccQ check tool will report warnings                                           
+        for missing manual conversions.</p>                                          
+        <p>After the complete conversion, the types <font size="2" face="Courier New">char</font>,                                           
+        <font size="2" face="Courier New">unsigned char</font>, <font size="2" face="Courier New">signed                                           
+        char</font><font size="2">, and </font><font size="2" face="Courier New">SAP_BYTE</font>                                           
+        will be eliminated from the source code. </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a NAME="StringCharConstants"></a></p>                                          
+        <font color="#773400"><b><p>String and character constants</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="507"><ul>                                          
+      <ul>                                          
+        <p>String and character constants shall be wrapped in the macro <font size="2"                                          
+        face="Courier New"><b>cU()</b></font>. In the non-Unicode case, this macro has no effect.                                           
+        In the Unicode case, it changes the constants to the type <font size="2"                                          
+        face="Courier New">wchar_t</font> by adding the letter ‘<font size="2"                                          
+        face="Courier New">L</font>’. </p>                                          
+        <p>Examples: </p>                                          
+        <p><font face="Courier New">&quot;text&quot; -&gt; cU(&quot;text&quot;) -&gt;                                           
+        &quot;text&quot;&nbsp; (non-Unicode) <br>                                          
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        -&gt; L&quot;text&quot; (Unicode) <br>                                          
+        'c'&nbsp;&nbsp;&nbsp; -&gt; cU('c')&nbsp;&nbsp;&nbsp; -&gt; 'c' &nbsp;&nbsp;&nbsp;                                           
+        (non-Unicode) <br>                                          
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        -&gt; L'c'&nbsp;&nbsp;&nbsp; (Unicode) </font></p>                                          
+        <p>When string constants are defined as macro, <font size="2" face="Courier New">cU()</font>                                           
+        will be applied in the macro definition.&nbsp; <br>                                          
+        There is also the macro cR(). It can be used in exceptional cases where a non-Unicode                                           
+        string or character is required even in a Unicode system. If you apply it manually, it                                           
+        will prevent ccU from inserting cU(). If you use <font size="2" face="Courier New">cR()</font>as                                           
+        actual paramaeter in a function call where <font size="2" face="Courier New">SAP_RAW *</font>                                           
+        is expected, it must be cast to<font size="2" face="Courier New"> SAP_RAW </font>because                                           
+        the formal type of <font size="2" face="Courier New">cR(&quot;text&quot;) </font><font                                          
+        size="2">is</font><font size="2" face="Courier New"> char *</font>.&nbsp;</p>                                          
+        <p>Concatenation of string constants must be done in the following way: </p>                                          
+        <p><font face="Courier New">SAP_UC * longText = cU(&quot;text_1&quot;)<br>                                          
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        cU(&quot;text_2&quot;)<br>                                          
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        cU(&quot;text_3&quot;);</font></p>                                          
+        <p>Using only one cU() macro around all parts of the concatenated string would add the 'L'                                           
+        only to the first part to in the Unicode case:<font face="Courier New"> </font></p>                                          
+        <p><font face="Courier New">SAP_UC * longText = L&quot;text_1&quot; &quot;text_2&quot;                                           
+        &quot;text_3&quot;;</font></p>                                          
+        <p>This would be syntactically wrong. </p>                                          
+        <p>&nbsp;</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a NAME="SystemFunctions"></a></p>                                          
+        <font color="#773400"><b><p>System functions which handle the type char</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="1152"><ul>                                          
+      <ul>                                          
+        <p>The following functions shall be called only through &quot;functionU&quot;                                           
+        macros.&nbsp; </p>                                          
+        <p>The order of the function names is the same as used in the file sapuc.h. On Windows NT                                           
+        function names start sometimes with a underscore. Some functions do not exist on all                                           
+        platforms. For these functions the &quot;functionU&quot; macro is only defined on those                                           
+        platforms, where the function exists.</p>                                          
+        <p>When a system function is normally reentrant (thread-safe), the corresponding                                           
+        U-function is reentrant also. </p>                                          
+        <p>&nbsp;</p>                                          
+        <font size="2" face="Arial"><p><b>isalnum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        isascii &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; isalpha                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iscntrl &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        isdigit</b> <br>                                          
+        <b>isgraph&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; islower                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; isprint &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        ispunct &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; isspace</b> <br>                                          
+        <b>isupper&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; isxdigit</b> </p>                                          
+        <p><br>                                          
+        <b>tolower&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; toupper</b> </p>                                          
+        <p><br>                                          
+        <b>strcat &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        strchr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; strcmp                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strcoll                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strcpy</b> <br>                                          
+        <b>strcspn&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        stricmp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; strnicmp</b>                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>strlen                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strncat                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>                                          
+        strncmp &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strncpy</b>                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>strpbrk&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;strrchr                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strspn<br>                                          
+        strstr &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;                                           
+        strtod</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>strtok                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;strtol                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strtoul                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <br>                                          
+        strxfrm</b> <br>                                          
+        </p>                                          
+        <p><b>atoi                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        atof &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; atol</b>                                           
+        <br>                                          
+        </p>                                          
+        <p><b>getopt</b> <br>                                          
+        </p>                                          
+        <p><b>access&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        &nbsp; chdir &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fdopen                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fopen &nbsp;&nbsp;&nbsp;                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; freopen</b> <br>                                          
+        <b>gethostname&nbsp;&nbsp;&nbsp; opendir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;                                           
+        open &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;</b> <br>                                          
+        <b>perror &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        remove &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;                                           
+        rename&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; system                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strftime</b> <br>                                          
+        <b>utime                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        mkdir&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; creat</b>                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>&nbsp; chmod                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; popen<br>                                          
+        rmdir                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        stat &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; lstat                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fstat&nbsp;</b>                                           
+        <br>                                          
+        <b>unlink &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        &nbsp; link &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        symlink &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; readlink &nbsp; &nbsp;&nbsp;                                           
+        chown&nbsp;</b> <br>                                          
+        <b>load                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        shl_findsym &nbsp;shl_load &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dlopen&nbsp;</b> <br>                                          
+        <b>dlsym</b> </p>                                          
+        <p><br>                                          
+        <b>asctime&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; ctime                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strerror                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; setlocale&nbsp;</b> <br>                                          
+        <b>tmpnam&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; tempnam&nbsp;&nbsp;                                           
+        &nbsp;&nbsp; ecvt&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        getcwd</b> <br>                                          
+        <b>ttyname</b> <br>                                          
+        </p>                                          
+        <p><b>printf &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fprintf                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sprintf                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vprintf                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; vfprintf</b> <br>                                          
+        <b>vsprintf&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; scanf                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fscanf                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sscanf                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fputc&nbsp;</b> <br>                                          
+        <b>fgetc                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        &nbsp; putc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; getc                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ungetc                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; putchar&nbsp;</b> <br>                                          
+        <b>getchar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; fputs                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fgets                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; puts                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gets</b> <br>                                          
+        </p>                                          
+        <p><b>execl &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        &nbsp; execle &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execlp                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execv                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; execve&nbsp;</b> <br>                                          
+        <b>execvp</b> </p>                                          
+        <p><b>getenv                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        putenv&nbsp;</b> <br>                                          
+        </p>                                          
+        <p><b>mblen                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        mbtowc &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wctomb                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mbstowcs                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wcstombs</b> <br>                                          
+        </p>                                          
+        <p><b>uname &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        readdir &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; getpwuid                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; getpwnam                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gethostbyname</b> <br>                                          
+        <b>gethostbyaddr&nbsp;&nbsp; gethostent&nbsp;&nbsp;&nbsp; getserverbyname</b> <br>                                          
+        <b>getservbyport&nbsp;&nbsp;&nbsp; nlist                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; getgrgid                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                           
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; xdr_string</b> </p>                                          
+        </font><p>For the ...U-versions of some of these functions, some Unicode-specific features                                           
+        are documented in <font size="2" face="Courier New">nlsui1.c</font>.&nbsp;</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <font color="#773400"><b><p>System functions which can handle raw data or text data and                                           
+        the sizeof operator</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="415"><ul>                                          
+      <ul>                                          
+        <p>The following functions manipulate memory using void * pointers. They must be                                           
+        categorized into text manipulation and raw data manipulation. This must be done                                           
+        manually.&nbsp; </p>                                          
+        <p><font size="2" face="Courier New"><b>memcpy</b>&nbsp; -&gt; memcpyU&nbsp;&nbsp; or                                           
+        &nbsp; memcpyR <br>                                          
+        <b>memmove</b> -&gt; memmoveU&nbsp; or&nbsp; memmoveR <br>                                          
+        <b>memset</b>&nbsp; -&gt; memsetU&nbsp;&nbsp; or&nbsp; memsetR <br>                                          
+        <b>memchr</b>&nbsp; -&gt; memchrU&nbsp;&nbsp; or&nbsp; memchrR <br>                                          
+        <b>memcmp</b>&nbsp; -&gt; memcmpU&nbsp;&nbsp; or&nbsp; memcmpR <br>                                          
+        <b>realloc</b> -&gt; reallocU&nbsp; or&nbsp; reallocR <br>                                          
+        <b>bzero</b>&nbsp;&nbsp; -&gt; bzeroU&nbsp;&nbsp;&nbsp; or&nbsp; bzeroR </font></p>                                          
+        <p>The <font size="2" face="Courier New">sizeof</font> operator is often used to determine                                           
+        the length of arrays which have the type char. As it counts bytes and not the number of                                           
+        elements of an array, it must be replaced by the macro <font size="2" face="Courier New">sizeofU().</font>                                           
+        Whenever a number of bytes is meant, <font size="2" face="Courier New">sizeofR()</font>                                           
+        should be used to indicate this. This distinction must be done <font size="2" face="Arial">manually.&nbsp;                                           
+        </font></p>                                          
+        <p><font face="Courier New"><b>sizeof&nbsp;&nbsp; -&gt;&nbsp; </b>sizeofU&nbsp;&nbsp; or                                           
+        &nbsp; sizeofR </font><b></p>                                          
+        <p></b><font face="Arial">It is not possible to use </font><font face="Courier New">sizeofU()                                           
+        </font><font face="Arial">or </font><font face="Courier New">sizeofR()</font><font                                          
+        face="Arial"> without parentheses, because they are macros, whereas sizeof itself is an                                           
+        operator.&nbsp; </font></p>                                          
+        <p><font face="Arial">There are some simple cases where the decision between U and R                                           
+        macros is done automatically: see the documentation of the Conversion
+        tool.</font><ul>                                          
+          <font size="2" face="Arial"><ul>                                          
+            <p>There are some more functions where the distinction between raw data and text data                                           
+            manipulation must be done manually:&nbsp; <ul>                                          
+              <p><strong><font size="2" face="Courier New">malloc calloc fgetc getc&nbsp; <br>                                          
+              ungetc fputc&nbsp; putc&nbsp; fread&nbsp; fwrite</font></strong></p>                                          
+            </ul>                                          
+          </ul>                                          
+        </ul>                                          
+        </font>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a NAME="FormatStrings"></a></p>                                          
+        <font color="#773400"><b><p>Format strings</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="325"><ul>                                          
+      <ul>                                          
+        <p>The following functions interpret a format string:&nbsp; <ul>                                          
+          <b><font size="2" face="Courier New"><p>printf</font> <font size="2" face="Courier New">&nbsp;&nbsp;                                           
+          fprintf&nbsp;&nbsp;&nbsp;&nbsp; sprintf&nbsp;&nbsp; scanf&nbsp; fscanf</font>                                           
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font size="2" face="Courier New">sscanf</font></b>                                           
+          <br>                                          
+          <b><font size="2" face="Courier New">vprintf</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font                                          
+          size="2" face="Courier New">vfprintf&nbsp;&nbsp;&nbsp; vsprintf</font></b> </p>                                          
+        </ul>                                          
+        <p><b>In the non-Unicode kernel</b>, the format string is of type <font size="2"                                          
+        face="Courier New">char</font> and the format descriptors <font size="2"                                          
+        face="Courier New">%s</font> and <font size="2" face="Courier New">%c</font> are used to                                           
+        denote character strings and single characters. The Unicode versions of these functions                                           
+        will expect a format string of type <font size="2" face="Courier New">wchar_t</font> and                                           
+        the format descriptors <font size="2" face="Courier New">%s</font> and <font size="2"                                          
+        face="Courier New">%c</font> (not <font size="2" face="Courier New">%S</font> and <font                                          
+        size="2" face="Courier New">%C)</font><font size="2"> for wide characters. Therefore in                                           
+        most cases the format strings need not to be modified. Like all other string constants,                                           
+        constant format strings must be wrapped by the </font><font size="2" face="Courier New">cU()</font>                                           
+        macro. Examples:&nbsp; </p>                                          
+        <p><font size="3" face="Courier New">sprintfU(dest, cU(&quot;%-5.3s&quot;), src);</font> </p>                                          
+        <p><font size="2" face="Courier New">src</font> is truncated to 3 characters (if                                           
+        necessary); then some blanks are appended to get 5 characters; these and a terminating <font                                          
+        size="2" face="Courier New">cU(‘\0’)</font> are stored in <font size="2"                                          
+        face="Courier New">dest</font>. <font size="2" face="Courier New">sprintfU</font> returns                                           
+        the number of characters stored, not counting the terminating zero. </p>                                          
+        <p><font size="3" face="Courier New">sscanfU(s, cU(&quot;%3s&quot;), str);</font> </p>                                          
+        <p>reads a string, but not more than 3 characters; then a terminating <font size="2"                                          
+        face="Courier New">cU(‘\0’)</font> is stored. For more details see <font size="2"                                          
+        face="Courier New">nlsui1.c</font>.</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a NAME="StructureNames"></a></p>                                          
+        <font color="#773400"><b><p>Structure names</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="381"><ul>                                          
+      <ul>                                          
+        <p>Structure names that are defined in standard header files and that contain elements of                                           
+        type char will be replaced by &quot;structureU&quot;. There are the following 6                                           
+        structures: <ul>                                          
+          <b><pre><font face="Courier New">hostent</b>&nbsp;&nbsp; -&gt;&nbsp;&nbsp; hostentU 
+<b>passwd</b>&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp; passwdU 
+<b>servent</b>&nbsp;&nbsp; -&gt;&nbsp;&nbsp; serventU 
+<b>nlist</b>&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp; nlistU 
+<b>utsname</b>&nbsp;&nbsp; -&gt;&nbsp;&nbsp; utsnameU 
+<b>dirent</b>&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp; direntU 
+<b>group</b>&nbsp;&nbsp;&nbsp;&nbsp; -&gt;&nbsp;&nbsp; groupU&nbsp; </font>
+        </pre>                                          
+        </ul>                                          
+        <p>There are some structures which have elements of type <font size="2" face="Courier New">char</font>                                           
+        that are usually not directly accessed. It is not necessary to replace these structures by                                           
+        U-structures. The direct access to such structures elements is not allowed.&nbsp; </p>                                          
+        <p>Example; this is forbidden: <ul>                                          
+          <font size="3" face="Courier New"><p>struct sockaddr* hugo;</font> <br>                                          
+          <font size="3" face="Courier New">memcpy( hugo-&gt;sa_data, ...) ;</font> </p>                                          
+        </ul>                                          
+        <p>The list of these structures comprises<font size="2" face="Courier New"> FILE, DIR,                                           
+        CLIENT, struct sockaddr, iovec, </font>etc.</p>                                          
+        <p>&nbsp;</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="1214"><ul>                                          
+      <ul>                                          
+        <p><a NAME="MainAndEnviron"></a><font color="#773400"><b>Use of main(argc, argv) and                                           
+        environ</b></font> </p>                                          
+        <p>In source files using <font size="2" face="Courier New">main</font> or the argument and                                           
+        environment vectors, the following changes must be done manually: <ul>                                          
+          <p>replace <font size="2" face="Courier New">main()</font> by <font size="2"                                          
+          face="Courier New">mainU(): </font>or<font size="2" face="Courier New"> main3U():&nbsp;</font>                                           
+          <br>                                          
+          </p>                                          
+          <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+            <tr>                                          
+              <td><font size="3" face="Courier New"><tt>int mainU(int argc, SAP_UC * argv[])&nbsp;</tt></font></td>                                          
+            </tr>                                          
+          </table>                                          
+          <li><br>                                          
+            <font size="2" face="Courier New">replace main(void) </font>by <small><font                                          
+            face="Courier New">mainU</font>()</small> and introduce <font size="2" face="Courier New">argc</font>                                           
+            and <font size="2" face="Courier New">argv</font>. There is no support for a mainU                                           
+            function without parameters.&nbsp; <br>                                          
+            If <font size="2" face="Courier New">main() </font>was used with three arguments (i.e.                                           
+            including the environment pointer), it can be replaced by <font size="2"                                          
+            face="Courier New">main3U()</font>.However, <font size="2" face="Courier New">main3U()</font>                                           
+            is not available on all platforms since main cannot be used with three parameters on all                                           
+            platforms. To get the whole environment, you may use <font size="2" face="Courier New">GETenvironU()</font>                                           
+            (see below).&nbsp;</li>                                          
+          <li><br>                                          
+            <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+              <tr>                                          
+                <td><font size="3" face="Courier New"><tt>int main3U( int argc, SAP_UC * argv[],</tt></font>                                           
+                <br>                                          
+                <font size="3" face="Courier New"><tt>SAP_UC * envp[])</tt></font></td>                                          
+              </tr>                                          
+            </table>                                          
+            <p><br>                                          
+            Use of the external variable <font size="2" face="Courier New">extern char **environ</font>                                           
+            should be avoided. It may be useful to use <font size="2" face="Courier New">GETenvironU()</font>                                           
+            instead (see below).&nbsp; </p>                                          
+          </li>                                          
+        </ul>                                          
+        <p><font size="2" face="Courier New">mainU </font>is a macro: <ul>                                          
+          <li>Character system <br>                                          
+            <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+              <tr>                                          
+                <td><font size="3" face="Courier New"><tt>#define </tt></font><font size="2"                                          
+                face="Courier New">mainU</font><font size="3" face="Courier New"> main&nbsp;</font></td>                                          
+              </tr>                                          
+            </table>                                          
+          </li>                                          
+          <li>Unicode system <br>                                          
+            <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+              <tr>                                          
+                <td><tt>#ifdef SAPonNT</tt> <br>                                          
+                <tt>#define mainU wmain</tt> <br>                                          
+                <tt>#else</tt> <br>                                          
+                <tt>#define mainU main(int argc, char* argv[]) \</tt> <br>                                          
+                <tt>{ ... /* do some initializations */ \</tt> <br>                                          
+                <tt>return nlsuc_main(argc, w_argv); } \</tt> <br>                                          
+                <tt>int nlsuc_main<br>                                          
+                #endif</tt></td>                                          
+              </tr>                                          
+            </table>                                          
+          </li>                                          
+        </ul>                                          
+        <p><font size="2" face="Courier New">main3U</font> is implemented similarly. For further                                           
+        details see <font size="2" face="Courier New">sapuc.h </font><font size="2">and the                                           
+        documentation in</font><font size="2" face="Courier New"> nlsui1.c</font><font size="2">.</font>                                           
+        </p>                                          
+        <p><font size="2" face="Courier New">getenv()</font> and <font size="2" face="Courier New">putenv()</font>                                           
+        are replaced by <font size="2" face="Courier New">getenvU()</font> and <font size="2"                                          
+        face="Courier New">putenvU()</font>. In the Unicode case, <font size="2"                                          
+        face="Courier New">getenvU()</font> returns a pointer to a Unicode copy of the value of                                           
+        the specified environment variable; <font size="2" face="Courier New">putenvU() </font>converts                                           
+        a Unicode string to a multibyte string and inserts the latter into the environment. Both                                           
+        functions use their own memory management. For details see the documentation in<font                                          
+        size="2" face="Courier New"> nlsui1.c</font>. </p>                                          
+        <p>In the R/3 sources, the variable <font size="2" face="Courier New">extern char                                           
+        **environ </font>is used only rarely. The code should be rewritten to avoid this variable.                                           
+        In some cases, the desired functionality can be achieved by using the third parameter of                                           
+        &nbsp; <font size="2" face="Courier New">main3U()</font><font size="2">and </font><font                                          
+        size="2" face="Courier New">putenvU()</font>. For other cases we provide a set of macros                                           
+        to read the environment.&nbsp; <ul>                                          
+          <p>&nbsp; </p>                                          
+          <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+            <tr>                                          
+              <td><font size="3" face="Courier New"><tt>DECLAREenvironU;/* Declares the variable&nbsp;</tt></font>                                           
+              <br>                                          
+              <font size="3" face="Courier New"><tt>* SAP_UC ** environU */&nbsp;</tt></font> <p><font                                          
+              size="3" face="Courier New"><tt>GETenvironU; /* Initializes environU as a</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* pointer to an array of</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* strings that represent the</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* current environment.</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* (malloc is used.) Now&nbsp;</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* environU can be used to</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* read the environment</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* variables, but not to</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>* change them.&nbsp;</tt></font> <br>                                          
+              <font size="3" face="Courier New"><tt>*/</tt></font> </p>                                          
+              <p><font size="3" face="Courier New"><tt>FREEenvironU; /* Free the storage allocated</tt></font>                                           
+              <br>                                          
+              <font size="3" face="Courier New"><tt>* by GETenvironU. */</tt></font></td>                                          
+            </tr>                                          
+          </table>                                          
+        </ul>                                          
+        <p>For more details and an example, see the file nlsui1.c .</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a name="SystemVariables"></a></p>                                          
+        <b><font color="#773400"><!-- Do not delete or change this name tag. It is used in qa.htm -->                                          
+<p>Forbidden external variables with type <i>char</i></font></b> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="154"><ul>                                          
+      <ul>                                          
+        <font size="2" face="Courier New"><p>extern char *sys_errlist[];</font> <br>                                          
+        <font size="2" face="Courier New">extern char *tzname[];</font> <br>                                          
+        <font size="2" face="Courier New">extern char **environ;&nbsp;</font> <br>                                          
+        <font size="2" face="Courier New">extern char **_environ; /* Windows NT only */</font> <br>                                          
+        <font size="2" face="Courier New">extern char *optarg;</font> </p>                                          
+        <p>The list of error messages should be accessed via the function <font size="2"                                          
+        face="Courier New">strerrorU()</font>. There is currently no standard function which                                           
+        accesses the time zone name stored in <font size="2" face="Courier New">tzname[]</font>.                                           
+        If this is necessary, we will implement it. For <font size="2" face="Courier New">environ</font>                                           
+        see above. <font size="2" face="Courier New">optarg</font> must be replaced by <font                                          
+        size="2" face="Courier New">optargU</font> which is declared in <font size="2"                                          
+        face="Courier New">sapuc.h</font> and will be handled by the function <font size="2"                                          
+        face="Courier New">getoptU()</font>.&nbsp;</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a name="UntypedStorage"></a></p>                                          
+        <font color="#773400"><b><p>Untyped Storage</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="192"><ul>                                          
+      <ul>                                          
+        <p>For accessing untyped storage use type <font size="2" face="Courier New">void*</font><font                                          
+        size="2">, and not </font><font size="2" face="Courier New">char*</font> or <font size="2"                                          
+        face="Courier New">caddr_t. void*</font> is not in- or decrementable, which makes sense                                           
+        because the size of objects pointed to is undefined. Therefore <font size="2"                                          
+        face="Courier New">saptypeb.h</font> defines macros <ul>                                          
+          <li><font size="2" face="Courier New">BYTE_OFFSET(ptr,offset)</font> for incrementing void                                           
+            pointers, and</li>                                          
+          <li><font size="2" face="Courier New">BYTE_OFFSET_NEG(ptr,offset)</font> for decrementing                                           
+            void pointers</li>                                          
+        </ul>                                          
+        <p>in units of bytes. </p>                                          
+        <p><font size="2" face="Courier New">caddr_t</font> was in use in some Unixes, and has                                           
+        been deleted in the XOPEN CAE Specification, September 1997. It is still defined in <font                                          
+        size="2" face="Courier New">saptype.h</font> as <font size="2" face="Courier New">char*</font>,                                           
+        but is probably not required anymore.</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a name="EmbeddedSQL"></a></p>                                          
+        <font color="#773400"><b><p>Embedded SQL Source Files</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p>These sources must be converted manually according to the above guidelines. </p>                                          
+        <p>After running through the DB-specific pre-compilers these sources must obey the above                                           
+        rules.</p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="59"><ul>                                          
+      <ul>                                          
+        <p><a name="IncludeFiles"></a></p>                                          
+        <font color="#773400"><b><p>Unicode Include Files and Preprocessor Switches</b></font> </p>                                          
+      </ul>                                          
+    </ul>                                          
+    </td>                                          
+  </tr>                                          
+  <tr>                                          
+    <td height="1658"><ul>                                          
+      <ul>                                          
+        <p>The Unicode interface is accessible through the header file <font size="2"                                          
+        face="Courier New">sapuc.h</font>. This header file is already included in all sources                                           
+        that include <font size="2" face="Courier New">saptype.h</font>. The Unicode interface                                           
+        should be sufficient to hide the difference between Unicode and non-Unicode versions of                                           
+        the source code.&nbsp; </p>                                          
+        <p>If some coding must be duplicated because the differences between the Unicode and                                           
+        non-Unicode coding are not covered by the Unicode interface, the following preprocessor                                           
+        switches can be used:&nbsp; </p>                                          
+        <p>To distinguish between Unicode and non-Unicode regardless of the implementation of                                           
+        Unicode, one may use <dir>                                          
+          <p>&nbsp; </p>                                          
+          <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+            <tr>                                          
+              <td><tt>#ifndef SAPwithUNICODE</tt> <br>                                          
+              <tt>... /* non-Unicode case */</tt> <br>                                          
+              <tt>#else&nbsp;</tt> <br>                                          
+              <tt>... /* Unicode case, use type SAP_UC */</tt> <br>                                          
+              <tt>#endif</tt></td>                                          
+            </tr>                                          
+          </table>                                          
+        </dir>                                          
+        <p><font size="3" face="Courier New">Then the Unicode part of the coding must use the data                                           
+        type </font><font size="2" face="Courier New">SAP_UC.</font>If you want to use the data                                           
+        type <font size="2" face="Courier New">wchar_t</font> directly (this should normally not                                           
+        be necessary), then the correct distinction would be <dir>                                          
+          <p>&nbsp; </p>                                          
+          <table border="1" cellpadding="0" cellspacing="0" width="65%" bordercolor="#000000">                                          
+            <tr>                                          
+              <td><tt>#if defined(SAP_UC_is_1B)</tt> <br>                                          
+              <tt>... /* non-Unicode case */</tt> <br>                                          
+              <tt>#elif defined(SAP_UC_is_wchar)&nbsp;</tt> <br>                                          
+              <tt>... /* Unicode case, use type wchar_t */</tt> <br>                                          
+              <tt>#else</tt> <br>                                          
+              <tt>#error &quot;Unicode but not wchar_t is not yet implemented&quot;</tt> <br>                                          
+              <tt>#endif&nbsp;</tt></td>                                          
+            </tr>                                          
+          </table>                                          
+        </dir>                                          
+        <p>This leaves the possibility of a future Unicode implementation which is not based on                                           
+        the data type <font size="2" face="Courier New">wchar_t</font>.&nbsp;</p>                                          
+        <p>&nbsp;</p>                                          
+      </ul>                                          
+    </ul>                                          
+    <blockquote>                                          
+      <p><a name="CppStandardLibrary"></a></p>                                          
+      <p><font color="#773400"><b>C++ standard library classes</b></font></p>                                          
+      <p><font size="2">For all character related classes of the C++ standard library there are </font><font                                          
+      size="2" face="Courier New">SAP_ </font><font size="2">equivalents.&nbsp; See the                                           
+      following table:</font></p>                                          
+      <table border="1" borderColor="#000080" cellPadding="4" cellSpacing="1" width="614">                                          
+<TBODY>                                          
+        <tr>                                          
+          <td bgColor="#000080" vAlign="top" width="50%"><font color="#ffffff" size="2"><b>C++                                           
+          standard library class</b></font></td>                                          
+          <td bgColor="#000080" vAlign="top" width="50%"><font color="#ffffff" size="2"><b>SAP                                           
+          equivalent</b></font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">string</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_string</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">istream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_istream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">ostream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_ostream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">iostream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_iostream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">istringstream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_istringstream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">ostringstream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_stringstream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">stringstream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_stringstream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">ifstream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_ifstream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">ofstream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_ofstream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">fstream</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_fstream</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">cout</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_cout</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">cin</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_cin</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">cerr</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_cerr</font></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td vAlign="top" width="50%"><font size="2">clog</font></td>                                          
+          <td vAlign="top" width="50%"><font size="2">SAP_clog</font></td>                                          
+        </tr>                                          
+</TBODY>                                          
+      </table>                                          
+    </blockquote>                                          
+    <blockquote>                                          
+      <p>Additionally for strings that use a self defined allocator there is a macro                                           
+      SAP_string_alloc( Allocator).</p>                                          
+    </blockquote>                                          
+    <blockquote>                                          
+      <p><font size="2">Corresponding to the &quot;U&quot; functions in sapuc.h we will provide                                           
+      &quot;S&quot;-functions which accept SAP::STRING as parameter (instead of SAP_UC*, e.g.                                           
+      chdirS( const SAP::STRING &amp; s ) ). Inline functions will be used rather than macros                                           
+      wherever possible. Functions for which corresponding implementation already exist in C++                                           
+      standard library (like strlen) or which are not recommended to use in C++ environment                                           
+      (like printf) are not supported as &quot;S&quot;-functions. If you need to use such                                           
+      functions, include sapuc.h.</font></p>                                          
+    </blockquote>                                          
+    <blockquote>                                          
+      <p><a name="CppStandardLibraryIncludes"></a></p>                                          
+      <p><font color="#773400"><b>Header for C++ standard library classes</b></font></p>                                          
+    </blockquote>                                          
+    <blockquote>                                          
+      <p><font size="2">We decided to follow the following principles:</font> <ul>                                          
+        <li>the declarations for the SAP classes are separated in headers analogue to the standard                                           
+          libary classes</li>                                          
+        <li>the headers are named SAP&lt;standard library name&gt;.hpp (truncated to maximum 10                                           
+          characters ) </li>                                          
+        <li>the headers include the according original standard library headers </li>                                          
+        <li>the declaration for SAP_UC and the unicode defines are taken from saptype.h. As soon as                                           
+          it is possible we will separate these declarations into a separate header (sapucbase.h)                                           
+          and use this header instead of saptype.h</li>                                          
+      </ul>                                          
+      <table border="1" borderColor="#000080" height="41" width="68%">                                          
+<TBODY>                                          
+        <tr>                                          
+          <td bgColor="#000080" height="14" width="49%"><b><font color="#ffffff">SAP class</font></b></td>                                          
+          <td bgColor="#000080" height="14" width="51%"><b><font color="#ffffff">SAP header</font></b></td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td height="15" width="49%">SAP_string</td>                                          
+          <td height="15" width="51%">sapstring.hpp</td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td height="15" width="49%">SAP_istream, SAP_ostream, SAP_iostream</td>                                          
+          <td height="15" width="51%">sapiostrm.hpp</td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td height="15" width="49%">SAP_istringstream, SAP_ostringstream, SAP_stringstream</td>                                          
+          <td height="15" width="51%">sapsstream.hpp</td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td height="15" width="49%">SAP_ifstream, SAP_ofstream, SAP_fstream</td>                                          
+          <td height="15" width="51%">sapfstream.hpp</td>                                          
+        </tr>                                          
+        <tr>                                          
+          <td height="15" width="49%">SAP_cin, SAP_cout, SAP_cerr, SAP_clog</td>                                          
+          <td height="15" width="51%">sapiostrm.hpp</td>                                          
+        </tr>                                          
+</TBODY>                                          
+      </table>                                          
+    </blockquote>                                          
+    <blockquote>                                          
+      <p>Additionally sapiosfwd.hpp contains the corresponding forward declarations.</p>                                          
+    </blockquote>                                          
+    </td>                                          
+  </tr>                                          
+</table>                                          
+<p>&nbsp; </p>                                     
+<h1><a name="ErrorHandling">Error Handling</a> / Trace Messages </h1>                                     
+<p>The user of the Unicode interface (&quot;U-functions&quot;) can determine how                                      
+to handle error and trace messages issued by the U-functions. To do this, he has                                      
+to implement a function with the same signature as in the following example:</p>                                     
+<blockquote>                                     
+  <pre>static void print_trace ( SAP_CHAR * buffer,
+                          int number_of_chars )
+{
+   fwriteU ( buffer, number_of_chars, 1, trace_file );
+   fputcU ( cU('\n') , trace_file );
+}</pre>                                     
+</blockquote>                                     
+<p>Further he has to call the following function</p>                                     
+<blockquote>                                     
+  <pre>nlsui_set_trace ( print_trace, high );</pre>                                     
+</blockquote>                                     
+<p>which will store the function pointer in a global variable.<br>                                     
+The message handling function (here <code>print_trace</code>) may use                                    
+<code>fwriteU</code> and <code>fputcU</code>,                                    
+but it must not use any U-functions which themselves might issue another message                                      
+(infinite recursion).                                    
+In particular, <code>fopenU</code> must not be used.</p>                                     
+<p>The second parameter of <code>nlsui_set_trace()</code> determines whether warnings are                                      
+reported too, see below.                                    
+If <code>nlsui_set_trace()</code> is not called, the default is that                                      
+messages are written to stderr.</p>                                     
+<p><code>nlsui_set_trace()</code> is declared in <code>sapuc.h</code>.                                   
+The message handling function has                                      
+the type <code>LINE_USING_PROC</code>, which is defined in <code>saptypeb.h</code>.</p>                                     
+<h3>Typical Error Conditions:</h3>                                    
+<p>If a conversion from UTF-8 (e.g. used in files) to SAP_UC fails:</p>                                     
+<ol>                                   
+  <li>A trace                                      
+message (see above) is written, including a dump.</li>                                   
+  <li>errno is set to EILSEQ.</li>                                   
+  <li>The function returns the usual value for unsuccessful completion.</li>                                   
+</ol>                                   
+<p>If automatic or static arrays which are used to store intermediate values are                                      
+too small, a special error handling is done when the minimum sufficient size is                                      
+not defined by the specification of the corresponding system function:</p>                                     
+<ol>                                   
+  <li>A                                      
+trace message is written.</li>                                   
+  <li>No special errno is set except in cases where an                                      
+existing error number can be used (e.g. ENAMETOOLONG).</li>                                   
+  <li>The function returns                                      
+unsucessfully; there are a few cases where a function continues sucessfully                                      
+(e.g. truncation of an error message).</li>                                   
+</ol>                                   
+<p>If a malloc() fails:</p>                                     
+<ol>                                   
+  <li>A trace message is written.</li>                                   
+  <li>errno is set to                                      
+ENOMEM.</li>                                   
+  <li>The function returns the usual value for unsuccessful completion.</li>                                   
+</ol>                                   
+<h3>Trace Levels:</h3>                                    
+<p>The second parameter of <code>nlsui_set_trace()</code> is the trace level.</p>                                    
+<table border="1" width="100%">                                 
+  <tr>                                 
+    <th width="28%">possible value:</th>                                 
+    <th width="72%">meaning:</th>                                 
+  </tr>                                 
+  <tr>                                 
+    <td width="28%"><code>none</td>                                 
+    <td width="72%"> No messages are output.</td>                                  
+  </tr>                                  
+  <tr>                                  
+    <td width="28%"><code>low</code></td>                                 
+    <td width="72%"> Illegal UTF-8 in files (and elsewhere) is reported. Several other errors are also reported.</td>                                  
+  </tr>                                  
+  <tr>                                  
+    <td width="28%"><code>medium</code></td>                                 
+    <td width="72%"> Errors                                      
+in {f|s}printfU format strings are reported.</td>                                  
+  </tr>                                  
+  <tr>                                  
+    <td width="28%"><code>high</code></td>                                 
+    <td width="72%"> The file name and file                                      
+descriptor are reported for each file that is opened (or reopened). Some other                                      
+(more or less pedantic) warnings are also reported, which may be helpful when                                      
+debugging.</td>                                  
+  </tr>                                  
+</table>                                  
+<p>There is a special trace for the shared library loading process, as this                                      
+happens in the very beginning of mainU() (and no U-functions must be used). 
+Certain Unicode functionality such as ICU (International Components for Unicode) is contained in shared libraries.
+The trace is                                      
+written to stderr and can be influenced only by the environment variable                               
+<code>NLSUI_INIT_TRACE_LEVEL</code> which can be chosen to have one of the values                               
+<code>none</code>,<code>low</code>, <code>medium</code>, or <code>high</code>.                               
+The default value is <code>low</code>.</p>                                     
+<p>&nbsp;</p>                                     
+<h1><a name="StandardIO">Standard I/O</a></h1>                                     
+<p>Unicode specific details of the standard I/O functions are described
+in <a href="./sapu16doc.htm">sapu16doc.htm</a>.
+</p>
+
+<h1><a name="ConvNum">Conversion to Numeric Types</a></h1>                               
+<p>Unicode specific details of the functions 
+<code>strtolU, strtoulU,  strtodU </code> etc.
+are described
+in <a href="./sapu16doc.htm">sapu16doc.htm</a>.
+</p>
+
+<p>&nbsp;</p>                                
+<h1><a name="StringProc">Simple String Processing</a></h1>                                
+<blockquote>          
+<pre>strcatU, strncatU, strcpyU, strncpyU, strchrU, strrchrU, strlenU,
+strspnU, strcspnU, strcmpU, strncmpU, strpbrkU, strstrU, strtok_rU, strtokU</pre>                                
+</blockquote>          
+<p>these                                 
+functions behave exactly as the corresponding without-U-functions, but are                                 
+operating on SAP_UC strings.</p>                                
+<p>&nbsp;</p>                                
+<h1><a name="EnvironAccess">Functions that access the environment</a></h1>                                
+<h2>mainU, main3U:</h2>                               
+<blockquote>         
+<pre>int mainU  ( int argc, SAP_UC **argv );
+int main3U ( int argc, SAP_UC **argv, SAP_UC **envptr );</pre>                               
+</blockquote>         
+<p>The source code looks like this:</p>                                
+<blockquote>          
+<pre>int mainU (int argc, SAP_UC *argv[ ] ) { .... }</pre>                                
+</blockquote>          
+<p>or:</p>                                
+<blockquote>          
+<pre>int main3U (int argc, SAP_UC *argv[ ], SAP_UC *envp[ ] ) { .... }</pre>                                
+</blockquote>          
+<p>The following is also allowed, but should not appear in new code:</p>                                
+<blockquote>          
+<pre>int mainU SAP_DC2( int,argc, SAP_UC**,argv) { .... }</pre>                                
+</blockquote>          
+<p>On Unix platforms, the original argument and environment arrays are assumed                                 
+to hold UTF-8 strings. They are converted to SAP_UC strings.</p>                                
+<h2>getenvU:</h2>                               
+<blockquote>         
+<pre>SAP_UC *getenvU ( const SAP_UC *name );</pre>                               
+</blockquote>         
+<p>Returns a pointer to the value of an environment variable. The pointer does                                
+not point to the actual environment string, but to a <code>SAP_UC</code> copy in malloc'd                                
+memory.</p>                               
+<p>The returned string should not be modified; in contrast to most UNIXes'                                
+<code>getenv()</code>, any modifications of the string will not affect the environment.</p>                               
+<p>The                                
+returned string can be used as long as the associated string in the environment                                
+is not changed. The returned string may be free'd by subsequent calls of                                
+getenvU, but not earlier than the associated string in the environment is                                
+changed.</p>                               
+<h2>putenvU:</h2>                              
+<blockquote>       
+<pre>int putenvU ( const SAP_UC *s );</pre>                              
+</blockquote>       
+<p>Sets an environment variable.</p>                               
+<p>The argument is converted to a UTF-8 string                                
+which is stored in a malloc'd array. A pointer to this array is inserted in the                                
+environment by standard <code>putenv()</code>.</p>                               
+<p>After calling <code>putenvU</code>, the argument string <code>s</code>                                
+should not be changed. In contrast to most UNIXes' <code>putenv()</code>, changing <code>s</code> after                                
+calling <code>putenvU</code> will not affect the environment.</p>                               
+<h2>execleU, execveU:</h2>                              
+<blockquote>      
+<pre>int execleU( const SAP_UC *path, const SAP_UC *arg, ...,
+             SAP_UC* const env[] );
+int execveU( const SAP_UC* path, SAP_UC* const argv[],
+             SAP_UC* const env[] );</pre>                              
+</blockquote>      
+<p>Unix only: The last parameter to both <code>execleU</code> and <code>execveU</code> specifies the                               
+environment for the new process. This array of strings is converted to UTF-8                               
+before calling the new process.</p>                              
+<h2>DECLARE-, GET-, and FREEenvironU:</p>                              
+</h2>      
+<blockquote>      
+<pre>DECLAREenvironU; GETenvironU; FREEenvironU;</pre>                              
+</blockquote>      
+<p>These macros allow to read the environment without using <code>extern char                               
+**environ</code> explicitly. With these macros it is not possible to change the     
+environment.</p>                             
+<p><code>DECLAREenvironU</code> declares the variable <code>SAP_UC **environU</code>.</p>                              
+<p><code>GETenvironU</code> initializes <code>environU</code> as a pointer to an array of strings that                               
+represent the current environment.</p>                              
+<p>Then, environU can be used to read the                               
+environment variables.</p>                              
+<p><code>FREEenvironU</code> frees the storage allocated by <code>GETenvironU</code>                               
+(if there was any allocated).</p>                              
+<p>On Unix platforms, the original environment array is assumed to hold UTF-8                               
+strings. By calling <code>GETenvironU</code>, they are converted to SAP_UC strings. <code>environU</code>                               
+points to an array of these converted strings.</p>                              
+<p>Neither the pointer <code>environU</code> nor the array it points to must be changed.</p>                              
+<p>In                               
+the non-Unicode case we use</p>                              
+<blockquote>     
+<pre><code>#define environU environ</code></pre>                              
+</blockquote>     
+<p>On NT, for the Unicode case we use</p>                              
+<blockquote>     
+<pre>#define environU           _wenviron
+#define DECLAREenvironU    extern SAP_UC **_wenviron</pre>                              
+</blockquote>     
+<h3>Example:</h3>                             
+<blockquote>    
+<pre>DECLAREenvironU;
+SAP_UC **p;
+GETenvironU;
+if (environU == NULL) some_error_message();
+for(p = environU; *p != NULL; p++)
+   fprintfU(my_file, cU(&quot;%s\n&quot;), *p);
+FREEenvironU;</pre>                             
+</blockquote>    
+<hr> 
+<p>Source: $Id: //bas/640_REL/src/flat/nlsuidoc.htm#1 $</p>
+</body>                               
+</html>                               

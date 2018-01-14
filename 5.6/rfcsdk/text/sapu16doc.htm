@@ -1,0 +1,556 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type"
+      content="text/html; charset=iso-8859-1">
+    <title>The SAPU16 Library</title>
+  </head>
+
+  <body>
+    <h1>The SAPU16 Library</h1>
+
+    <ol>
+    <h2><li>General Information</h2>
+
+    The SAPU16 Library provides functions for character processing using
+    16-bit Unicode. They replace the corresponding wchar_t functions of
+    the C runtime.  The functions which are provided by the SAPU16 library
+    are declared in sapu16.h .
+    For UTF-16 and other Unicode encoding forms, see the Appendix.
+
+    <p>
+      The SAPU16 Library is Open Source. For the terms and conditions, please
+      refer to the file README.
+      The README file also contains information how to compile and install
+      the library.
+    </p>
+    <p>
+      The version number of the SAPU16 Library can be found in u16_aux.c,
+      see the variable version_u16.
+
+    <h2><li><a name="ErrorHandling">Error Handling and Trace Messages</a>  </h2>                                     
+    <p>
+      By default, the SAPU16 Library writes error and trace messages to stderr.
+      You  can redirect or
+      suppress the
+      messages.
+      To redirect the messages,
+      implement a function with the same signature as in the following example:</p>                                     
+    <blockquote>                                     
+  <pre>static void print_trace ( const utf16_t * buffer,
+                          int number_of_chars )
+{
+   fwriteU16 ( buffer, number_of_chars, 1, trace_file );
+   fputcU16  ( cU('\n') , trace_file );
+}</pre>                                     
+</blockquote>                                     
+<p>Further,  call the following function</p> 
+<blockquote>                                     
+  <pre>setTraceLibu16U16 ( print_trace, high );</pre> 
+</blockquote>                                     
+<p>which will store the function pointer in a global variable.<br> 
+The message handling function (here <code>print_trace</code>) may use 
+<code>fwriteU16</code> and <code>fputcU16</code>, 
+but it should avoid any U16-functions which themselves might issue another message                                      
+since there is the danger of infinite recursion. 
+</p>                                     
+<p>The second parameter of <code>setTraceLibu16U16()</code> determines whether warnings are                                      
+reported too, see below.                                    
+
+</p>                                     
+<h4>Typical Error Conditions:</h4>                                    
+<p>If a conversion from UTF-8 (e.g. used in files) to UTF-16 fails:</p>                                     
+<ol>                                   
+  <li>A trace                                      
+message is written, including a dump.</li>                                   
+  <li>errno is set to EILSEQ.</li>                                   
+  <li>The function returns the usual value for unsuccessful completion.</li>                                   
+</ol>                                   
+<p>malloc() is used in very exceptional cases only. If a malloc() fails:</p>                                     
+<ol>                                   
+  <li>A trace message is written.</li>                                   
+  <li>errno is set to                                      
+ENOMEM.</li>                                   
+  <li>The function returns the usual value for unsuccessful completion.</li>                                   
+</ol>                                   
+<h4>Trace Levels:</h4> 
+<p>The second parameter of <code>setTraceLibu16U16()</code> is the trace level.</p>                                    
+<table border="1" width="90%"> 
+  <tr> 
+    <th width="16%">Possible value:</th> 
+    <th width="84%">Meaning:</th> 
+  </tr> 
+  <tr> 
+    <td width="16%"><code>none</td> 
+    <td width="84%"> No messages are output.</td> 
+  </tr> 
+  <tr> 
+    <td width="16%"><code>low</code></td> 
+    <td width="84%"> Invalid UTF-8 in files (and elsewhere) is reported. Several other errors are also reported.</td> 
+  </tr> 
+  <tr> 
+    <td width="16%"><code>medium</code></td> 
+    <td width="84%"> Errors 
+in format strings of printf- and scanf-like functions are reported.</td> 
+  </tr> 
+  <tr> 
+    <td width="16%"><code>high</code></td> 
+    <td width="84%">Some more or less pedantic warnings are reported, which may be helpful when 
+debugging.</td> 
+  </tr> 
+</table> 
+<p>&nbsp;</p>                                     
+
+    <h2><li>Basic string handling</h2>
+
+The functions
+<blockquote>          
+<pre>strcatU16, strchrU16, strcmpU16, strcpyU16, strcspnU16, strdupU16, 
+strlenU16, strncatU16, strncmpU16, strncpyU16, strpbrkU16, 
+strrchrU16, strspnU16, strstrU16, strtok_rU16
+
+memchrU16, memcmpU16, memcpyU16, memmoveU16, memsetU16
+</pre> 
+</blockquote>          
+<p>
+behave exactly as the corresponding char-type functions, but are 
+operating on arrays of 16-bit characters.</p>                                
+
+<p>&nbsp;</p>                                
+<h2><li><a name="ConvNum">Conversion to Numeric Types</a></h2>                               
+<p>The following functions convert Unicode strings to numeric types.</p>                                
+<blockquote>           
+<pre>long           strtolU16(const utf16_t *nptr, utf16_t **endptr, int base);
+unsigned long strtoulU16(const utf16_t *nptr, utf16_t **endptr, int base);</pre>                                
+</blockquote>           
+<p>The following two functions are not available on NT, and their non-Unicode 
+(char-type)
+versions may be unavailable on some platforms, e.g. HP-UX 11.00 .</p>                                
+<blockquote>           
+<pre>long long           strtollU16(const utf16_t *nptr, utf16_t **endptr, int base);
+unsigned long long strtoullU16(const utf16_t *nptr, utf16_t **endptr, int base);</pre>                                
+</blockquote>           
+<p>The <code>strtodU16</code> function 
+<blockquote>           
+<pre>double strtodU16(const utf16_t *str, utf16_t **endptr);</pre> 
+</blockquote>           
+assumes that the current locale's decimal point is 7-bit                                 
+ASCII. Otherwise, only <code>'.'</code> is accepted as decimal point.
+Grouping (e.g. 1,000,000.00) is not supported.
+Hexadecimal numbers are not accepted.</p>                                
+<p>&nbsp;</p>                                
+
+
+<h2><li><a name="FmtInput">Formatted Input</a></h2> 
+<p>In the following, some Unicode specific details are described. These have to                                      
+be understood as an extension of the documentation of the original char-type functions.</p>                                     
+<p>When reading from files or stdin, the U16 versions of standard I/0 functions                                      
+expect UTF-8 and convert the input to 16-bit Unicode. If any standard I/O                                      
+function encounters an invalid UTF-8 character in the input stream, it replaces 
+it with a '#' character tries to continue reading.&nbsp; Please check <code>errno</code>. For                                      
+an invalid UTF-8 character, <code>errno</code> is set to EILSEQ.
+This is in line with the function <code>fgetwc</code> of C99. </p> 
+
+<p> The functions <code>fget_strU16</code> and <code>fget_lineU16</code> offer a 
+different error handling, see below.
+</p>
+
+
+<h3>sscanf:</h3>                                   
+<blockquote>                   
+<pre>int sscanfU16( const utf16_t *s, const utf16_t *format, ... );</pre>                                   
+</blockquote>                   
+<p>Each %-expression in the format string has the general form:</p>                                    
+<blockquote>                    
+<pre>% [*] [WIDTH] [TYPE_MODIFIER] TYPE_SPECIFIER</pre>                                    
+</blockquote>                    
+<p>The format specifiers %s and %c indicate Unicode strings and single Unicode                                     
+characters, respectively.</p>                                    
+<p>We assume that the current locale's decimal point is 7-bit ASCII. Otherwise,                                     
+only <code>'.'</code> is accepted as decimal point.</p>                                    
+<p>                       
+<code>%lld</code>, <code> %llx</code> etc. for types <code> long long </code> and <code> unsigned long long </code> are supported.<br>                                     
+<code>%I64d</code> etc. for type <code> __int64 </code> is supported on NT.<br>                       
+<code>%Le</code> etc. for type long double is                                     
+not yet supported; the implementation is only experimental (as of 15 Jun 2001).</p>                                    
+<p>Grouping (i.e. the use of the thousands separator) is not supported.</p>
+
+<p>
+Positional parameters, e.g. <code>%2$3c</code>, are not supported.
+Hexadecimal floating point numbers are not accepted.
+Some other features of C99 (ISO 9899:1999) are not yet supported.
+This is mainly because the char-type versions of sscanf do not
+have these features.
+</p> 
+
+<h4>Return value:</h4>                                   
+<p>Number of successfully matched and assigned input items. This                                     
+number can be 0.</p>                                    
+<h4>Examples:</h4>                                   
+<pre>sscanfU16(s, cU(&quot;%3s&quot;), d);</pre>                                   
+<blockquote>                  
+<p>reads at most three 16-bit units from                                     
+s. A terminating <code>'\0'</code> is stored.</p>                                    
+</blockquote>                   
+<pre>sscanfU16(s, cU(&quot;%3c&quot;), d);</pre>                                    
+<blockquote>                   
+<p>reads three 16-bit units from s. No terminating <code>'\0'</code> is stored.</p>                                    
+</blockquote>                   
+<h3>Deprecated: scanf and fscanf:</h3>                                   
+<blockquote>                       
+<pre>int  scanfU16(               const utf16_t *format, ... );
+int fscanfU16( FILE *stream, const utf16_t *format, ... );</pre> 
+</blockquote>                       
+<p>These functions are similar to <code>sscanfU16</code>, but read
+from a file which implies some differences.
+These functions have severe shortcomings, so we recommend to use
+<code>fget_strU16</code> to read strings that are delimited by 
+whitespace characters, or to use
+<code>fget_intU16</code>, <code>fget_longU16</code>
+to read decimal integers, 
+or to read an entire line with <code>fget_lineU16</code>
+and to apply  <code>sscanfU16()</code> afterwards.
+</p>    
+<p>The input of <code>scanfU16</code> and <code>fscanfU16</code>
+is expected to be UTF-8. 
+If the input stream contains a byte sequence that is not a valid UTF-8 
+character, the functions 
+set <code>errno</code> to EILSEQ and try to continuae reading.
+If they encounter
+a UTF-8 character with more than 3 bytes, they replace it with
+0xfffd (Unicode replacement character).
+</p>                                    
+<p>Attention: Calling <code>ungetc</code> after scanfU16 or fscanfU16 may fail (since (f)scanfU16                                     
+may have done an ungetc internally and some existing operating systems guarantee just                                     
+one character of push back.)</p>                                    
+
+<p>If the last character read from the input stream does not match, it
+should be pushed back, but this may fail because <code>ungetc()</code>
+(on some operating systems) guarantees only one byte of push back.
+Also, we do not employ UTF-8 locales. Some platforms do not have 
+UTF-8 locales.  So, the non-matching character is pushed back only
+if it is in the 7-bit ASCII range. (In this case the UTF-8
+representation is a single byte < 0x80.) Otherwise this
+non-matching character is discarded.
+</p>                                    
+
+<h4>Return Value:</h4>                                   
+<p>Number of successfully matched and assigned input items. This number can be                                    
+0. If the function cannot continue reading the input and no conflict or                                    
+assignment occured so far, the function returns EOF.</p>                                   
+<h4>Examples:</h4>                                   
+<pre>fscanfU16(f, cU(&quot;%3s&quot;), d);</pre>                                   
+<blockquote>                    
+<p>The length 3 refers to the number of 16-bit units in memory,
+not to the number of bytes in the file.
+</p>                                    
+<p>&nbsp;</p>                                    
+</blockquote>                     
+
+<h2><li>Formatted Output</h2> 
+<p>For the <code>printfU16</code> functions, the format specifiers <code>%s</code> and <code>%c</code> indicate Unicode                                     
+strings and single Unicode characters, respectively. All functions return the                                     
+number of 16-bit units written.</p>                                    
+<p><code>%lld</code>, <code>%llx</code> etc. for types <code>long long</code> and                              
+unsigned long long are supported.<br>                              
+<code>%I64d</code> etc. for type <code>__int64</code> is supported on NT.<br>                              
+<code>%Le</code> etc. for type </code>long double</code> is                                     
+not yet supported; the implementation is only experimental (as of 15 Jun 2001).</p> 
+
+<p><i>Grouping</i> (i.e. insertion of thousands separators) is not supported. <i> Pointer                                     
+values</i> (%p) are output in a platform-dependent way, and there can be differences                                     
+between printfU16 and the original char-type printf. Similar remarks hold for tricky format                                     
+strings such as</p>                                    
+<blockquote>                             
+<pre>sprintfU16(out, cU(&quot;%#.*o&quot;), 0, 0);</pre>                                    
+</blockquote>                             
+<p>Some features of C99 (ISO 9899:1999) are not yet supported.</p>                                    
+<p>The following functions convert the output to UTF-8:</p>                                    
+<blockquote>                             
+  <pre>  printfU16
+ fprintfU16
+ vprintfU16
+vfprintfU16</pre>                            
+</blockquote>                             
+
+<p>The following functions have an additional parameter n which is the length of                                     
+the output buffer.</p>                                    
+<blockquote>                             
+<pre>int  snprintfU16( utf16_t *d, size_t n, const utf16_t *format, ...);
+int vsnprintfU16( utf16_t *d, size_t n, const utf16_t *format, va_list ap );</pre>                                    
+</blockquote>                             
+<p><strong>Attention</strong>: The return codes of <code>snprintfU16</code> and <code>vsnprintfU16</code> are platform                                     
+dependent and the defined behaviour may be different from
+the char-type functions <code>snprintf</code> and <code>vsnprintf</code>.<br>
+
+On NT, <code>snprintfU16</code> and <code>vsnprintfU16</code> do not write a terminating zero if the output buffer is                                     
+full.</p>                                    
+<p>On Unix, <code>snprintfU16</code> and <code>vsnprintfU16</code> write at most n-1                                     
+16-bit units; a terminating zero is appended. If n is zero, nothing is written and                                     
+s may be a null pointer. The return value is the number of 16-bit units that would                                     
+have been written had n been sufficiently large, not counting the terminating                                     
+null character, or a negative value if an error occurred. Thus, the                                     
+null-terminated output has been completely written if and only if the returned                                     
+value is nonnegative and less than n. (This conforms to the C99 standard.) The                                     
+<code>%n</code> format specifier takes a pointer to a signed integer into which is written                                     
+the number of 16-bit units that would have been written so far if n had been                                     
+sufficiently large.</p>                                    
+<p>The behaviour of the char-type functions <code>snprintf</code> and <code>vsnprintf</code> may be                                     
+different and may depend on the release of the operating system; on some 
+platforms these functions may be unavailable, e.g. Digital Unix 4.0.</p>                                    
+<h4>Examples:</h4>                                   
+<pre>sprintfU16(d, cU(&quot;%.10s&quot;), s);</pre>                                   
+<blockquote>                          
+<p>At most 10 16-bit units of the                                     
+string s are stored in d. Then a terminating zero is appended in d.</p>                                    
+</blockquote>                           
+<pre>sprintfU16(d, cU(&quot;%10s&quot;), s);</pre>                                    
+<blockquote>                           
+<p>At least 10 16-bit units are                                     
+stored in d, padding with '&nbsp;' (Space) on the left if necessary. Then a                                     
+terminating zero is appended in d.</p>                                    
+</blockquote>                           
+<pre>sprintfU16(d, cU(&quot;%-3.3s&quot;), s);</pre>                                    
+<blockquote>                           
+<p>Exactly 3 16-bit units are                                     
+stored in d, with padding on the right if necessary. Then a terminating zero is                                     
+appended in d.</p>                                    
+</blockquote>                           
+<p>&nbsp;</p>                                   
+<h2><li>Character Input and Simple Integer Parsing</h2> 
+
+<h3>fget_strU16:</h3>                                   
+<blockquote>                 
+<pre>int fget_strU16( utf16_t *s, int n, FILE *stream, utf16_t repl_char );</pre> 
+</blockquote>                 
+
+<p>
+<code>fget_strU16</code> reads a string that is delimited by
+whitespace characters.  Leading whitespace characters are skipped.
+<code>fget_strU16</code> reads non-whitespace characters from
+<code>stream</code> until a whitespace character occurs, which is not
+pushed back, or EOF occurs.  At most <code>n-1</code> non-whitespace
+characters are read and stored in <code>s</code>. If the input stream
+contains a byte sequence that is not a valid UTF-8 character, the
+function replaces each invalid byte with the replacement character
+<code>repl_char</code> and tries to continue reading.  A terminating <code>'\0'</code> is
+appended to <code>s</code> unless an error occurred before reading
+anything into <code>s</code> or <code>n=0</code>.  </p>
+
+<h4>Return value:</h4>  
+                                
+<p>If successful, <code>fget_strU16</code> returns the
+number of non-whitespace characters read. If it was not possible to
+read any non-whitespace characters or an error (as indicated by the
+ferror function) occurred, <code>fget_strU16</code> returns
+EOF. Otherwise, if any input was replaced with <code>repl_char</code>,
+<code>fget_strU16</code> returns -2. </p>
+
+<h4>Remark:</h4>  
+
+<p><b>Whitespace characters</b> include '&nbsp;' (space), 
+'\t' (horizontal tabulation),
+'\n' (newline), '\v' (vertical tabulation), '\f' (form feed), '\r' 
+(carriage return), '\u3000' (fullwidth ideographic space)  and some others. 
+</p>
+
+<h3>fget_lineU16:</h3>                                   
+<blockquote>                 
+<pre>int fget_lineU16( utf16_t *s, int n, FILE *stream, utf16_t repl_char );</pre> 
+</blockquote>                 
+
+<p><code>fget_lineU16</code> is similar to <code>fgetsU16</code>, but
+has a different error handling and different return codes.
+<code>fget_lineU16</code> reads at most <code>n-1</code> characters
+into <code>s</code> and adds a terminating <code>'\0'</code>. It stops
+reading after <code>'\n'</code> has been read and stored. It also
+stops when EOF occurs.  If EOF is encountered and no characters have
+been read into <code>s</code>, the contents of <code>s</code> remain
+unchanged.  If the input stream contains a byte sequence that is not a
+valid UTF-8 character, the function replaces each invalid byte with
+the replacement character <code>repl_char</code> and tries to continue
+reading.
+ </p>
+
+<h4>Return value:</h4>  
+                                
+<p>If successful, <code>fget_lineU16</code> returns the number of
+characters read, including any <code>'\n'</code>, but not including
+the terminating <code>'\0'</code>. If it was not possible to read
+anything or an error (as indicated by the <code>ferror</code>
+function) occurred, <code>fget_lineU16</code> returns EOF. Otherwise,
+if any input was replaced with <code>repl_char</code>,
+<code>fget_lineU16</code> returns -2.
+ </p>
+
+<h3>fget_longU16:</h3>                                   
+<blockquote>                 
+<pre>int fget_longU16( long int* ptr, FILE *stream );</pre> 
+</blockquote>                 
+
+<p><code>fget_longU16</code> reads a decimal integer from stream,
+converts it to the type <code>long int</code> and stores it in the
+address pointed to by <code>ptr</code>. <code>fget_longU16</code>
+skips leading whitespace characters.  <code>fget_longU16</code>
+accepts the digits '0' to '9', preceeded by an optional sign ('+' or
+'-').
+ </p>
+
+<h4>Return value:</h4>  
+                                
+<p>If successful, <code>fget_longU16</code> returns 0.  If it was not
+possible to read any non-whitespace character or an error (as
+indicated by the <code>ferror</code> function) occurred,
+<code>fget_longU16</code> returns EOF. If the input stream contained a
+byte sequence that is not a valid UTF-8 character,
+<code>fget_longU16</code> sets <code>errno</code> to EILSEQ and
+returns EOF.  If an overflow or underflow occurred,
+<code>LONG_MAX</code> or <code>LONG_MIN</code> is stored in the
+address pointed to by <code>ptr</code> and 1 is returned. If none of
+the previous errors occurred, but there was no digit in the stream,
+<code>fget_longU16</code> returns -2; in this case the non-digit
+character read is not pushed back to the stream, but its value is cast
+to the type <code>long int</code> and stored in the address pointed to
+by <code>ptr</code>.
+ </p>
+
+<h3>fget_intU16:</h3>                                   
+<blockquote>                 
+<pre>int fget_intU16( int* ptr, FILE *stream );</pre> 
+</blockquote>                 
+
+<p><code>fget_intU16</code> reads a decimal integer from
+<code>stream</code>, converts it to the type <code>int</code> and
+stores it in the address pointed to by <code>ptr</code>. The behaviour
+is analoguous to <code>fget_longU16</code>.
+ </p>
+
+
+<h3>fgetcU16:</h3>                                   
+<blockquote>                 
+<pre>int fgetcU16 ( FILE *stream );</pre>                                   
+</blockquote>                 
+
+<p>Reads as many bytes as required to get a valid UTF-8 character,
+which is then converted to <code>UCS-2</code>.  This function cannot
+be used to read a surrogate pair; it returns the value 0xfffd (Unicode
+replacement character) if there is a UTF-8 character with more than 3
+bytes in the input stream.  To be able to read surrogate pairs,
+consinder using <code>fget_strU16</code> and
+<code>fget_lineU16</code>.  </p>
+
+<h4>Return value:</h4>                                  
+<p>If successful, a Unicode character; otherwise EOF.<br>
+If the input stream contains a byte sequence that is not a valid UTF-8 
+character, the function 
+sets <code>errno</code> to EILSEQ and returns EOF.
+</p>                                   
+<h3>fgetsU16:</h3>                                  
+<blockquote>                
+<pre>utf16_t *fgetsU16 ( utf16_t *s, int n, FILE *stream );</pre>                                  
+</blockquote>                
+<p>The input is expected to be UTF-8. At most n-1 16-bit units are stored                                   
+in the string s. A terminating <code>'\0'</code> is appended.</p>                                  
+<h4>Return value:</h4>                                  
+<p>If successful, <code>s</code>; otherwise NULL.<br>
+If the input stream contains a byte sequence that is not a valid UTF-8 
+character, the function 
+sets <code>errno</code> to EILSEQ, replaces the invalid UTF-8 character with '#' 
+and tries to continue reading.
+</p>                                   
+<h3>freadU16:</h3>                                
+<blockquote>             
+<pre>size_t freadU16(utf16_t *p, size_t s, size_t n, FILE *stream);</pre>                                
+</blockquote>             
+<p>This function tries to store s&middot;n 16-bit units starting at the address                                 
+p. UTF-8 is read from stream and converted to 16-bit Unicode.
+<br>
+If the input stream contains a byte sequence that is not a valid UTF-8 
+character, 
+sets <code>errno</code> to EILSEQ, replaces the invalid UTF-8 character with '#' 
+and tries to continue reading.
+</p> 
+
+<h4>Return value:</h4>           
+If successful, <code>n</code>.<br>           
+Otherwise it returns the number of items that                                 
+have been read and converted.<br>           
+Each item consists of s 16-bit units. The                                 
+last item may have been truncated and is not counted in this case.           
+
+    <p>&nbsp;</p>
+
+<h2><li>Character Output</h2>                                   
+
+<h3>fputcU16:</h3>                                  
+<blockquote>               
+<pre>int fputcU16(int c, FILE *stream);</pre>                                  
+</blockquote>               
+<p>The 16-bit unit <code>c</code> is converted to UTF-8 and written to stream.</p>                                  
+<h4>Return value:</h4>                                 
+<p>The character <code>c</code>.</p>                                  
+
+<h3>fputsU16:</h3>                                  
+<blockquote>               
+<pre>int fputsU16(utf16_t* str, FILE *stream);</pre>                                  
+</blockquote>               
+<p>The string <code>str</code> is converted to UTF-8 and written to stream.</p>                                  
+<h4>Return value:</h4>                                 
+<p>The number of 16-bit units handled.</p>                                  
+
+<h3>fwriteU16:</h3>                                 
+<blockquote>              
+<pre>size_t fwriteU16(const utf16_t *p, size_t s, size_t n, FILE *stream);</pre>                                 
+</blockquote>              
+<p>s&middot;n 16-bit units starting at the address p are converted to UTF-8 and                                  
+written to stream.</p>                                 
+<h4>Return value:</h4>              
+If successful, <code>n</code>.<br>              
+Otherwise it returns the number of items that                                  
+have been converted and written. Each item consists of s 16-bit units. The                                  
+last item may have been truncated and is not counted in this case.                                 
+
+
+    <p>&nbsp;</ol>
+
+<h2>Appendix: Unicode Encoding Forms </h2>                                   
+<i>Partially based on the Unicode FAQ Copyright ©1998-2000 Unicode, Inc.</i>
+
+    <p>For Unicode, there are three main encoding forms (UTF-8, UTF-16, and
+      UTF-32), which encode the same common character repertoire.
+      Transformations between these encoding forms are efficient and do not
+      lead to any loss of data.
+    </p>
+    <p>
+      UTF-16 allows access to nearly 63500 characters as single Unicode
+16-bit units. It can access one million additional characters by a
+mechanism known as surrogate pairs. Two ranges of Unicode code values
+are reserved for the high (first) and low (second) values of these
+pairs. Highs are from 0xD800 to 0xDBFF, and lows from 0xDC00 to
+0xDFFF.  Since the most common characters have already been encoded as
+16-bit values, the characters requiring surrogate pairs will be
+relatively rare.
+    </p>
+    <p>
+All characters represented in UTF-16, including those represented with
+a surrogate pair, can be represented as a single 32-bit unit in
+UTF-32. This single unit corresponds to the Unicode scalar value,
+which is the abstract number associated with a Unicode
+character. UTF-32 is a subset of the encoding called UCS-4 in ISO
+10646.
+    </p>
+    <p>
+In UTF-8, the representation of each character requires between one
+and four 8-bit units. For 7-bit ASCII characters, the UTF-8 encoding
+coincides with the ASCII encoding.
+    </p>
+    <p>
+The UCS-2 encoding is a subset of UTF-16; it uses 16 bits for each
+character.
+    </p>
+
+
+
+<hr> 
+<p>Source: $Id: //bas/640_REL/src/flat/sapu16doc.htm#2 $</p>
+</body>                               
+</html>

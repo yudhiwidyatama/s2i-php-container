@@ -1,0 +1,213 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Unicode in the RFC SDK</title>
+</head>
+
+<body>
+
+<h2>Unicode in the RFC SDK</h2>
+<p>The
+<dfn>SAP U-Interface</dfn>
+is a generic API for Unicode and non-Unicode RFC applications.</p>
+
+<p>With this interface RFC applications can be compiled from the same source for both modes
+with the compile option <code>-DSAPwithUNICODE</code>.
+See <a href="#Compilers">here</a> for compile and run time information.
+</p>
+
+<p>Header files <code>sapuc.h</code> and <code>sapucx.h</code> (both in SDK/include) specify the
+U-Interface. These headers are implicitly included from the standard header&nbsp;
+<code>saprfc.h</code>.</p>
+
+<p>Libraries SDK <code>/lib/librfc.X</code> (non-Unicode) and SDK <code>/lib/librfcu.X</code> (Unicode)
+implement the U-Interface. </p>
+
+<p>The RFC API supports Unicode on those platforms where SAP supports Unicode R/3.
+On other platforms the RFC API is available only in non-Unicode mode.
+Such applications can run RFC connections to Unicode R/3 systems,
+but must be aware of possible data incompatibilities due to their restricted character sets:
+they can send all their character data to the Unicode partner system,
+but can not receive all characters from that system.
+</p>
+
+<a name=UInterface></a><h3>The U-Interface</h3>
+<p>Details on the SAP U-Interface are given&nbsp; <a href="sapucdoc.htm">here</a>:</p>
+<ul>
+  <li><a href="sapucdoc.htm#Guideline">Guidelines</a>:
+  Character data types.
+    String and character constants.
+    System functions.
+    Format strings.
+    Structures.
+    Main and environ.</li>
+  <li><a href="sapucdoc.htm#ErrorHandling">Error Handling and Trace Messages</a>.</li>
+  <li><a href="sapucdoc.htm#StandardIO">Standard I/O</a>: Formatted Output. Formatted Input. Character Input and
+    Output. Direct I/O. </li>
+  <li><a href="sapucdoc.htm#ConvNum">Conversion to Numeric Types</a>. </li>
+  <li><a href="sapucdoc.htm#StringProc">String Processing</a>. </li>
+  <li><a href="sapucdoc.htm#EnvironAccess">Environments</a> </li>
+</ul>
+Please understand that tools
+<cite>ccQ</cite> and
+<cite>mapro</cite>
+mentioned in this document
+are not available outside of SAP;
+see also a note in the next section.
+
+<h3><a name="sapucTools">Source Conversion and Check Tools for the U-Interface</a></h3>
+Convert your sources to conform with the U-Interface specified above.
+<p>
+<em>Note:</em>
+tools to convert sources to,
+and check for conformance with,
+the U-Interface had been offered by SAP
+but are now (2004-12) withdrawn.
+
+<h3><a name="Compilers">Compiling for the U-Interface</a></h3>
+
+To compile your applications you must use the same compiler,
+or a compatible one,
+that compiled the SAP U-Interface.
+The <kbd>sapinfo</kbd> example application (part of SDK),
+called with option <kbd>-v</kbd>,
+gives the compiler version
+used to compile the SDK example applications.
+<p>
+For compilers that do not support UTF&#x2011;16 encoded string literals,
+please use a modified compile procedure:
+<ol>
+<li>preprocess your source;
+<li>run the preprocessed text through an SAP supplied Perl script;
+<li>compile the resulting text.
+</ol>
+See Note 763741 for details on
+this procedure,
+the script, and
+its usage.
+The note gives a reference to the UTF&#x2011;16 string literal standard,
+which the compiler manufacturers are implementing.
+<p>
+As of 2006-11 these compilers,
+among possibly others,
+support UTF&#x2011;16:
+<ul>
+<li>
+the HP compiler
+<cite>HP C/HP-UX Version B.11.11.06</cite>
+<li>
+the IBM compiler
+<cite>XL C/C++ Version 7</cite>
+<li>
+<cite>Microsoft Windows</cite> C/C++ Compilers.
+<li>
+the Sun compiler
+<cite>Sun Studio 11</cite>
+</ul>
+<p>
+The following table lists the commands and options
+used to compile, link, and run
+the example RFC applications in <code>SDK/bin</code>.
+<br><em>Note:</em> Please modify these values as appropriate for your
+compilation environment;
+e.g. the location of the RFC SDK in the listed commands
+is that of the SAP make environment and
+must be adjusted to your environment;
+likewise the compiler/linker will probably be installed elsewhere
+in your environment.
+
+<table border>
+<caption>RFC Application Compile Options</caption>
+<tbody>
+<tr><td>Platform</td><td>
+OS :<code>
+Linux
+</code><br>
+Release :<code>
+GNU
+</code><br>
+Version :<code>
+SLES-9
+</code><br>
+On :<code>
+linuxx86_64
+</code></td></tr>
+<tr><td>UTF&#x2011;16 literal support</td>
+<td>pre-compilation script=<kbd>
+Not Set.
+</kbd> option:<kbd>
+Not Set.
+</kbd>
+<p>When this script name is set
+you must use the modified compile procedure
+described above.
+<br>
+When this script name is not set
+the compiler understands UTF&#x2011;16 literals,
+or this description pertains to the non-Unicode RFC SDK,
+and you can use standard compile procedures.
+</td></tr>
+<tr><td>Compile command</td><td><kbd>
+/bas/640_REL/src/maketools/sapcc /sapmnt/appl_sw/gcc-3.3.3/bin/gcc -I/bas/640_REL/gen/opt/linuxx86_64/rfcsdk/include  -DSAP_RFC_TIME -c
+</kbd>
+<p>On some platforms the compiler call is
+prefixed by a call to a procedure setting up the compile environment.
+You should remove or modify the latter,
+depending on your compilation environment.
+<br>
+<em>Note:</em> when <kbd>-DSAPwithUNICODE</kbd> is absent from this command,
+this description pertains to the non-Unicode RFC SDK.
+</td></tr>
+<tr><td>Link command</td><td><kbd>
+/sapmnt/appl_sw/gcc-3.3.3/bin/gcc -o $@   -Wl,-L/bas/640_REL/gen/opt/linuxx86_64/rfcsdk/lib,-lrfccm
+</kbd>
+<p>If the platform allows,
+link without the <cite>library location</cite> built into the executable.
+<br>
+To maintain downward compatiblity we continue to deliver
+<cite>libsapu16</cite>,
+which became obsolete as separate library in 2006.
+</td></tr>
+<tr><td>Run (environment)</td><td><kbd>
+LD_LIBRARY_PATH=/bas/640_REL/gen/opt/linuxx86_64/rfcsdk/lib
+</kbd>
+<p>Omit environment entry <kbd>NO_SAP_ICU_PATH</kbd>
+which is only required in the SAP make environment.
+</td></tr>
+</tbody></table>
+<p>
+<em>Note</em>:
+SAP uses the procedure described above
+to compile the RFC SDK and the example programs.
+If you want,
+or have,
+to use a different compiler
+you can define one of the following macros:
+<table border>
+<tbody>
+<tr><td><kbd>RFCSDKwithUTF16_LITERALS</kbd><td>
+SAP used a compiler which was not UTF&#x2011;16 enabled;
+hence the description above includes the pre-compilation Perl script.
+<br>You want to use a UTF&#x2011;16 enabled compiler.
+</tr>
+<tr><td><kbd>RFCSDKwithoutUTF16_LITERALS</kbd><td>
+SAP used a UTF&#x2011;16 enabled compiler;
+hence above you find the standard compile procedure,
+without the pre-compilation Perl script.
+<br>You want to use a compiler which is not UTF&#x2011;16 enabled.
+</tr>
+</tbody>
+</table>
+
+<p>
+<hr>
+<p>Generated&emsp;
+from&emsp;$Id: //bas/640_REL/src/krn/rfc/rfcsdk_uc.htm#7 $.</p>
+
+</body>
+
+</html>

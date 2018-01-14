@@ -1,0 +1,641 @@
+* @(#) $Id: //bas/640_REL/src/krn/rfc/readme.rfc#7 $ SAP
+
+
+---------------------------------------------------------------------
+
+      R  E  M  O  T  E    F  U  N  C  T  I  O  N    C  A  L  L
+
+         S O F T W A R E   D E V E L O P M E N T   K I T
+
+
+			  -  RFC SDK  -
+
+---------------------------------------------------------------------
+
+
+		1. Contents of the RFC SDK
+
+		2. How To Compile and Link an RFC program
+
+		3. Example for the "sideinfo" file
+
+		4. Transactional Remote Function Call (tRFC)
+
+		5. RFC SDK on AS/400
+
+
+----------------------------------------------------------------------
+
+
+
+1. CONTENTS OF THE RFC SDK:
+***************************
+
+After installing on your system the RFC SDK contains following directory
+structure and items: (The differences to the RFC SDK on AS/400 are
+described in topic 5.)
+
+.../rfcsdk/
+
+     bin/
+
+        sapinfo(.exe)   RFC-Client program
+			gets system info of an RFC server system 
+
+	startrfc(.exe)  RFC-Client program
+			calls any function module in a SAP system
+
+	rfcexec(.exe)   RFC-Server program
+			started from SAP system for file/pipe access
+
+	srfctest(.exe)  RFC-Client program
+			different RFC tests
+
+	srfcserv(.exe)  RFC-Server program
+			different RFC tests
+
+	trfctest(.exe)  Sample RFC-Client program for transactional RFC
+			transfers data in internal table to SAP R/3
+			(Not for Windows 3.1 or 3.11)
+
+	trfcserv(.exe)  Sample RFC-Server program for transactional RFC
+			receives data in internal table from SAP R/3
+			(Not for Windows 3.1 or 3.11)
+
+	rfcthcli(.exe)  RFC-Client program
+			Multi-Threaded program (only on Windows NT/95)
+
+	rfcthsrv(.exe)  RFC-Server program
+			Multi-Threaded program (only on Windows NT/95)
+
+   include/
+
+	saprfc.h	Header file for general RFC-API
+
+	sapitab.h	Header file for working with SAP Internal Table
+
+	rfcsi.h		Header file for program sapinfo.c
+
+	srfctest.h    	Header file for program srfctest.c
+
+	srfcserv.h      Header file for program srfcserv.c
+
+	trfctest.h	Header file for program trfctest.c
+			(Not for Windows 3.1 or 3.11)
+
+	trfcserv.h	Header file for program trfcserv.c
+			(Not for Windows 3.1 or 3.11)
+
+   lib/
+
+	librfc.a	RFC-Library for supported UNIX-Platforms
+
+   or	librfc.dll	RFC-Library for OS/2 (>= 2.1)
+	librfc.lib	RFC-Library for link RFC programs
+
+   or	librfc32.dll	RFC-Library for Windows_NT/Windows_95
+	librfc32.lib	RFC-Library for link RFC programs
+
+   or	librfc16.dll---|
+	librfc2.dll    |
+	librfc3.dll    |-- RFC-Library for Windows (>= 3.11)
+	librfc4.dll    |
+	librfc5.dll    |
+	librfc6.dll ---|
+	librfc16.lib	RFC-Library for link RFC programs
+
+   or	librfc   	RFC dynamic lin library for OS/390 Unix System Services
+	librfc.x	Definition side deck file
+
+   text/
+
+	readme.rfc	this file
+
+	sapinfo.c       RFC-Client program
+			gets system info of an RFC server system
+
+	startrfc.c      RFC-Client program
+			calls any function module in a SAP system
+
+	rfcexec.c       RFC-Server program
+			started from SAP system for file/pipe access
+
+	srfctest.c      RFC-Client program
+			different RFC tests
+
+	srfcserv.c      RFC-Server program
+			different RFC tests
+
+	trfctest.c      Sample RFC-Client program for transactional RFC
+			transfers data in internal table to SAP R/3
+			(Not for Windows 3.1 or 3.11)
+
+	trfcserv.c      Sample RFC-Server program for transactional RFC
+			receives data in internal table from SAP R/3
+			(Not for Windows 3.1 or 3.11)
+
+	rfcthcli.c      RFC-Client program
+			Multi-Threaded program (only on Windows NT/95)
+
+	rfcthsrv.c      RFC-Server program
+			Multi-Threaded program (only on Windows NT/95)
+
+
+
+2. HOW TO COMPILE AND LINK AN RFC PROGRAM:
+******************************************
+
+In general, you have to:
+  - use an ANSI C compatible C-compiler,
+  - set the Include and Library of the installed RFC SDK
+  - link the RFC-Library (librfc.a or librfc32.lib or librfc16.lib
+    or librfc.lib).
+
+On some platforms you also have to link the socket libraries explicitly.
+    
+How to compile and link a RFC program on AS/400 is explained in topic 5.
+
+Assume .../rfcsdk is the root directory of the unpacked RFC SDK. The
+following compile/link calls should be done for the program sapinfo.c
+on different platforms.
+
+
+LINUX :
+=======
+
+g++ -I .../rfcsdk/include/ -L .../rfcsdk/lib/
+  sapinfo.c -o sapinfo -lrfc -lm -ldl -lrt
+
+For additional information, please read chapter 6: RFCSDK on Linux platforms
+
+
+HP-UX :
+=======
+cc -Ae -I .../rfcsdk/include -L .../rfcsdk/lib
+   sapinfo.c -o sapinfo -lrfc -lcl -ldld -lM
+
+
+AIX (RS/6000):
+==============
+cc -I .../rfcsdk/include -L .../rfcsdk/lib
+   sapinfo.c -o sapinfo -lrfc
+
+
+SINIX (RM600):
+==============
+/opt/C/bin/cc -I .../rfcsdk/include -L .../rfcsdk/lib
+  sapinfo.c -o sapinfo -lrfc -lsocket -lnsl -lusc -ldl -lm
+   
+
+DEC AlphaOSF:
+=============
+cc -std1 -unsigned -I .../rfcsdk/include -L .../rfcsdk/lib
+   sapinfo.c -o sapinfo -lrfc -lots -lm
+
+
+SUN (SunPro) :
+==============
+/opt/SUNWspro/bin/cc -Xc -xcg92 -I .../rfcsdk/include -L .../rfcsdk/lib
+  sapinfo.c -o sapinfo -lrfc -lsocket -lnsl -ldl -lm -lw
+   
+
+WINDOWS (>= 3.1):
+=================
+Example with MSVC 1.5x:
+
+cl /nologo /Gs /G2 /W4 /AL /D "_DOS" /Od /Mq
+   /Fesapinfo.exe sapinfo.c librfc16.lib /link
+
+If using other compilers, individual adjustments may have to be made
+and, if necessary, discussions held with the compiler manufacturers.
+SAP cannot provide any support for Compile/Link problems with other
+compilers.
+
+
+WINDOWS NT/95:
+==============
+Example with MSVC 4.x/5.x:
+
+cl /nologo /Mld /W3 /Gm /GX /Zi /Od /D_X86_ /DWIN32 /MT /FR
+   /Fesapinfo.exe sapinfo.c librfc32.lib
+
+If using other compilers, individual adjustments may have to be made
+and, if necessary, discussions held with the compiler manufacturers.
+SAP cannot provide any support for Compile/Link problems with other
+compilers.
+
+
+OS/2 (>= 2.1):
+==============
+icc -c -Gs- -Kb+ -Sm -Q -Gm+ -Ss+ -O- -Ti+ -Gt- -DOS2 sapinfo.c
+link386 /NOI /CO /PM:VIO /ST:16384 /PACKD %1,,,librfc;
+
+
+OS/390 Unix System Services
+===========================
+cc -I .../rfcsdk/include -Wc,DLL,RENT,LONGNAME -Wl,DLL -DSAPonOS390
+   -o sapinfo .../rfcsdk/lib/librfc.x sapinfo.c
+
+
+
+3. EXAMPLE FOR THE "sideinfo" FILE:
+***********************************
+
+We have to distinguish between the "sideinfo" file for RFC programs
+and the "sideinfo" file for the SAP Gateway.
+
+A SAP Gateway needs for itself a "sideinfo" file to know the way how
+to reach partner system (R/2, R/3 and External Systems).
+
+A RFC program needs a "sideinfo" file to tell the RFC Library the way
+how to reach a SAP system.
+
+
+A "sideinfo" file is only necessary for some but not for all
+RFC-Client programs.
+
+
+A RFC-Client program working with RfcConnect (LOAD BALANCING MODE,
+R/3 >= 3.0 only) does not need the "sideinfo" file.
+
+
+A RFC-Client program issueing RfcConnArgv before RfcOpen does not need
+the "sideinfo" file as well. (All connection parameters how to reach
+the RFC Server system are transferred to the RFC library via
+RfcConnArgv).
+
+
+If the RFC-Client program wants to work with a local "sideinfo", this
+file must contain an entry according to the parameter "destination"
+in RfcOpen.
+
+
+This entry must have following network parameters:
+
+ DEST=<Destination indicated in RfcOpen>
+
+ GWHOST=<Hostname of the machine where the SAP-Gateway is running>
+
+ GWSERV=<TCP-Service of this SAP Gateway (mostly sapgw00)>
+
+ PROTOCOL=<Id for RFC-Server (I/C: R/3 or R/2 in an IBM-Environment)>
+
+Connecting to R/3 requires following more Info:
+
+ LU=<Hostname of the machine where a R/3-Application Server is running>
+ 
+ TP=<System number of the R/3 system>
+
+This "sideinfo" file can be defined
+
+ - in the working directory of your RFC-Client program
+or
+ - via Environment Variable SIDE_INFO
+   (e.g. setenv SIDE_INFO=/usr/sap/rfctest/sideinfo)
+
+
+EXAMPLE "sideinfo" FILE:
+========================
+
+/* Connect to a R/3 */
+DEST=SR3
+GWHOST=hpux01
+GWSERV=sapgw00
+PROTOCOL=I
+LU=hpux02
+TP=sapdp00
+
+/* Connect to a R/2 (IBM) via SAP Gateway on AIX-Machine */
+DEST=K50
+GWHOST=aix001
+GWSERV=sapgw00
+PROTOCOL=C
+
+/* Connect to a R/2 (IBM) via SAP Gateway on HP-UX-Machine */
+DEST=H50
+GWHOST=hpux01
+GWSERV=sapgw00
+PROTOCOL=C
+
+
+The "sideinfo" file for the SAP Gateway running on an AIX-Machine
+for the above example must contain following further entries: 
+
+/*============================================================*/
+/*                                                            */
+/* Further entries for a SAP Gateway running on AIX-Machines  */
+/*                                                            */
+/* DEST=                                                      */
+/* Same destination as in sideinfo from external system       */
+/* The extension _n (n=1,2,...) is necessary for the Gateway  */
+/* to try to get an LU6.2-Session with the next defined Local */
+/* LU automatically if the first ones are not available.      */
+/*                                                            */
+/* LU=                                                        */
+/* K50T1, K50T2, K50T3 are the profile names of LOGICAL       */
+/* CONNECTIONS configured for the installed SNA-Services.     */
+/*                                                            */
+/* For SNA-Server (new name of SNA-Services) they are the     */
+/* profile names of LU6.2 Side Information.                   */
+/*                                                            */
+/* TP=                                                        */
+/* X1SA is the name of SAP-Transaction in CICS                */
+/*                                                            */
+/*============================================================*/
+/*                                                            */
+/* Be careful that other programs or R/3-ABAP-programs can    */
+/* use the same destination for working with R/2.             */
+/*                                                            */
+/* Solution: Working with LU6.2 Parallel Sessions             */
+/*           or configure more LU6.2 and/or using different   */
+/*           destinations for different applications          */
+/*                                                            */
+/*============================================================*/
+
+DEST=K50_1
+LU=K50T1
+TP=X1SA
+
+DEST=K50_2
+LU=K50T2
+TP=X1SA
+
+DEST=K50_3
+LU=K50T3
+TP=X1SA
+
+
+The "sideinfo" file for the SAP Gateway running on an HP-UX-Machine
+for the above example must contain following further entry: 
+
+/*============================================================*/
+/*                                                            */
+/* Further entry for a SAP Gateway running on HP-UX-Machines  */
+/*                                                            */
+/* DEST=                                                      */
+/* Same destination as in sideinfo from external system       */
+/*                                                            */
+/* LU=                                                        */
+/* H50T is the profile names of a PARTNER LU configured for   */
+/* the installed SNAplusLink.                                 */
+/*                                                            */
+/* TP=                                                        */
+/* X1SA is the name of SAP-Transaction in CICS                */
+/*                                                            */
+/* LOCAL_LU=                                                  */
+/* LU0001 is the profile name of a LOCAL LU configured for    */
+/* the installed SNAplusLink.                                 */
+/*                                                            */
+/* The Info about LOCAL_LU is not necessary if for the        */
+/* (Partner-)LU (in exapmle H50T) at least one Locale LU in   */
+/* LU-Pool is configured for the installed SNAplusLink.       */
+/*                                                            */
+/* We recommend you to work with LU-Pool because SNAplusLink  */
+/* will try to connect via the next LU6.2 automatically if    */
+/* the first one are not available.                           */
+/*                                                            */
+/* MODE_NAME=                                                 */
+/* One of the defined LU6.2-Mode for this LU-Session,         */
+/* configured for the installed SNAplusLink.                  */
+/*                                                            */
+/*============================================================*/
+/*                                                            */
+/* Be careful that other programs or R/3-ABAP-programs can    */
+/* use the same destination for working with R/2.             */
+/*                                                            */
+/* Solution: Working with LU6.2 Parallel Sessions             */
+/*           or configure more LU6.2 for LU-Pool              */
+/*           or using different destinations with different   */
+/*              LOCAL_LU for different applications           */
+/*                                                            */
+/*============================================================*/
+DEST=H50
+LU=H50T
+TP=X1SA
+LOCAL_LU=LU0001
+MODE_NAME=LU62SAP1
+
+
+
+4. TRANSACTIONAL REMOTE FUNCTION CALL (tRFC):
+*********************************************
+
+Transactional Remote Function Call (tRFC) is the new name of
+Asynchroneous Remote Function Call (aRFC) and is now also supported
+by the RFC-Library. 
+
+The restriction is the tRFC programs (Client and Server) must 
+manage the Transaction-IDs created and transferred from the
+corresponding R/3 system for execute the transaction EXACTLY ONCE.
+
+See the include saprfc.h for programming details.
+
+Moreover, the RFC-SDK contents two sample programs for tRFC.
+They show how to write tRFC programs and how to manage the
+Transaction-IDs via file system.
+
+Please start working these tRFC programs with TRACE to get details
+how tRFC works.
+
+The ABAP programs SRFCTEST/SRFCTRAN and the function module
+STFC_WRITE_TO_TCPIC will be used for working with these tRFC programs.
+
+
+
+
+5. RFC SDK on AS/400:
+*********************
+
+
+a. STRUCTURE OF THE RFC SDK on AS/400:
+--------------------------------------
+
+After you have installed the optional R/3 add-on RFC SDK on your AS/400,
+the library R3<REL>RFC contains the RFC SDK.
+(<REL> stands for the current R/3 Release, e.g. 30C).
+
+R3<REL>RFC has the following structure:
+
+
+
+Library 	File/Object	Member
+				
+
+R3<REL>RFC
+|
+|                         _
+|-------------- GENH       |
+|-------------- RFCEXEC    |
+|-------------- RFCNPASS   |
+|-------------- RFCPING    |
+|-------------- SAPINFO    |
+|-------------- SRFCSERV   |  Executables
+|-------------- SRFCSRV2   |
+|-------------- SRFCTEST   |
+|-------------- STARTRFC   |
+|-------------- TRFCSERV   |
+|-------------- TRFCTEST  _|
+|
+|                         _
+|-------------- LIBRFC     |  Service programs
+|-------------- LIBRFC46D _|
+|
+|
+|-------------- C
+|               |                          _
+|               |-------------- RFCEXEC     |
+|               |-------------- RFCPING     |
+|               |-------------- RFCTHCLI    |
+|               |-------------- RFCTHSRV    |
+|               |-------------- SAPINFO     |
+|               |-------------- SRFCSERV    |  RFC source files
+|               |-------------- SRFCTEST    |
+|               |-------------- STARTRFC    |
+|               |-------------- TRFCSERV    |
+|               |-------------- TRFCTEST   _|
+|
+|
+|-------------- H
+|               |                          _
+|               |-------------- RFCSI       |
+|               |-------------- SAPITAB     |
+|               |-------------- SAPRFC      |
+|               |-------------- SAPUC       |
+|               |-------------- SAPUCX      |
+|               |-------------- SRFCSERV    |  RFC header files
+|               |-------------- SRFCTEST    |
+|               |-------------- TRFCSERV    |
+|               |-------------- TRFCTEST   _|
+|
+|
+|-------------- SEC
+|               |                          _
+|               |-------------- RFCEXEC    _|  Security file
+|
+|
+|-------------- HTM                        _
+|               |-------------- RFCAPIU     |
+|               |-------------- SAPUCDOC    |
+|               |-------------- SAPU16DOC   |
+|                                           |
+|-------------- INI                         |
+|               |-------------- SAPRFC      |
+|                                           |
+|-------------- RFC                         |
+|               |-------------- README      |  RFC info files
+|                                           |
+|-------------- TXT                         |
+|               |-------------- RFCAPI     _| 
+|
+|-------------- QRPGLESRC                  _
+|               |-------------- RFCEXEC     |  Sources for RPG version 
+                |-------------- SAPRFC     _|  of a subset of rfcexec
+
+
+The executables are some compiled example and test programs. The LIBRFC and LIBRFC46D 
+*SRVPGMS provide the implementation of the RFC APIs. The source code is contained
+in the form of members in the file C. The corresponding header files are members
+in the file H. The files INI, RFC and TXT contain some documentation. To show how 
+an RFCSDK Server can be implemented in RPG we provide example code in the QRPGLESRC 
+file. At the beginning of member RFCEXEC you see the compile statements.
+For further explanation of the contents of the RFC SDK see topic 1.
+
+!!! Attention !!!
+the LIBRFC is the RFC library for the 640 RFCSDK. The LIBRFC46D is an 46D compatible
+Version of the librfc. The LIBRFC in the 640 RFCSDK is not downward compatible to prior
+releases.
+If you have a 46D RFC program (using signature BB7ACF35241FAF6808B9C5363D215844 for
+the EBCDIC librfc or signature B10D69989ADC8125637CCD25A9AAE585 for the ASCII librfc)
+which you want to execute with a 640 RFCSDK you have two possibilities:
+The prefered way is to relink the program against the 640 LIBRFC by:
+    CHGCURLIB CURLIB(<lib_of_the_640_RFCSDK>)
+    UPDPGM PGM(<lib>/<pgm>) MODULE(*NONE) SRVPGMLIB(*LIBL)
+If this does not work, because the program was originally created with CRTPGM option
+ALWUPD(*NO) or ALWLIBUPD(*NO) and you do not know the original library, you can use the
+LIBRFC46D instead.
+To do so, create a new library, copy the LIBRFC46D to this library and rename it to
+LIBRFC. Change the liblist of the Job to run the 46D RFC program to have this new 
+library prior to any other library containing a LIBRFC. Finally start the program.
+
+
+b. HOW TO COMPILE AND LINK A RFC PROGRAM on AS/400:
+---------------------------------------------------
+As of release 6.40 the EBCDIC librfc is supported again.
+An ASCII librfc is only needed for MBCS Systems.
+See OSS Notes 527570 'Multibyte Characters (MBCS) with RFC from
+EBCDIC programs' and  695125 'Connecting an EBCDIC program with an ASCII LIBRFC'
+to recompile your application.
+
+To ensure that your program's literals have the right CCSID (in the examples of
+the notes we need EBCDIC CCSID 500 for the RfcConvertE2A ) insert the line
+#pragma convert(500)
+at the beginning of every sourcefile.
+
+In order to create an executable you use the commands:
+CRTCMOD, CRTPGM.
+
+Example for creating the executable sapinfo:
+	
+	ADDLIBLE LIB(R3<REL>RFC)
+
+	CRTCMOD MODULE(SAPINFO) SRCFILE(R3<REL>RFC/C) OUTPUT(*PRINT) OPTION(*SYSINCPATH *SHOWUSR *EXPMAC)
+		DBGVIEW(*SOURCE) DEFINE('SAPonOS400') SYSIFCOPT(*IFSIO)
+
+	CRTPGM PGM(SAPINFO) MODULE(SAPINFO) BNDSRVPGM(LIBRFC) DETAIL(*FULL)
+
+
+See topics 3 and 4.
+
+c. HOW TO USE THE SAPRFC.INI and RFCEXEC.SEC FILES:
+---------------------------------------------------
+
+To make the saprfc.ini or rfcexec.sec file visible for
+the SDK you have to set environment variables to the
+apropriate values seen by the jobs running the SDK (e.g):
+
+ADDENVVAR ENVVAR(RFC_INI)
+	VALUE('/QSYS.LIB/R3<REL>RFC.LIB/INI.FILE/SAPRFC.MBR')     
+
+ADDENVVAR ENVVAR(RFCEXEC_SEC_FILE_PATH)
+	VALUE('/QSYS.LIB/R3<REL>RFC.LIB/SEC.FILE/RFCEXEC.MBR')     
+
+
+
+
+
+6. RFCSDK ON LINUX PLATFORMS
+----------------------------
+
+The runtime libraries of the RFCSDK on Linux platforms has been provided by SAP
+- depending on the architecture - with different versions of the GNU gcc/g++ compiler.
+
+In order to be able to link your programs with the SAP RFCSDK libraries, it's 
+necessary, that you use the same compiler which was used by SAP to build the RFC libraries.
+
+Currently shipped SAP LINUX RFCSDKs use one of the following compilers:
+- gcc 2.95.3 on SUSE SLES 7 (on 32bit Intel platform only. This one is deprecated.).
+- gcc 3.2.2 from SUSE SLES 8
+- gcc 3.3.3 from SUSE SLES 9
+
+To sucessfully use the SAP 640 RFCSDKs with your programs you should use:
+* SUSE SLES 8, RH EL 3, SUSE Professional 9.2
+   for i686, ia64 and s390x    (gcc 3.2)
+* SUSE SLES 9, RH EL 4, SUSE SLES 10, Fedora Core 5, OpenSUSE 10.1
+   For x86_64 and ppc64        (gcc 3.3 or newer compiler)
+
+To sucessfully use the SAP 700 RFCSDKs with your programs you should use:
+* SUSE SLES 9, RH EL 4, SUSE SLES 10, Fedora Core 5, OpenSUSE 10.1
+   for i686, x86_64, ia64, ppc64 and s390x  (gcc 3.3 or newer compiler)
+
+
+General tips: 
+- Since RFCSDKs are backwards compatible you should prefer the 
+  700 RFCSDK over the 640 RFCSDK.
+
+- If you see linker errors:
+  "undefined references in library lib/librfc.a" -> use 700 RFCSDK instead.
+  or
+  this error also occurs when you compile with gcc instead of g++. 
+                                                 -> use g++ compiler 
+
+

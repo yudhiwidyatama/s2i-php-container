@@ -1,0 +1,572 @@
+@(#) $Id: //bas/640_REL/src/krn/rfc/rfcapi.txt#1 $ SAP
+
+
+
+
+RFC API
+
+
+The Remote Function Call API (RFC API) allows - remotely or
+locally - calling ABAP/4 function modules from C programs as well
+as receiving  call request issued from an ABAP/4 program by the
+CALL FUNCTION interface.
+
+Libraries and include files
+
+The RFC API of SAP consist of 3 parts.
+
+* The include files saprfc.h. The include file saprfc.h  contains
+  the following data type and structure definitions as well as
+  the prototypes (declarations) of the functions forming the API.
+  
+* The include file sapitab.h. This include file defines an
+  interface for manipulating ABAP/4 internal tables.
+* The library librfc.a (librfc.dll, etc.), which contains the
+  functions of the API.
+
+
+
+Controlling connections
+
+The following functions allow to open and close RFC connections.
+
+     RFC_HANDLE RfcOpen( RFC_OPTIONS * options )
+
+open a connection according to the given options. If an error
+occurs RFC_HANDLE_NULL is returned. The structure RFC_OPTIONS
+contains the necessary data for opening the connection: 
+
+    typedef struct
+    {
+       char *   destination;      /* Name of destination         
+                                   */
+    
+       /* connection data */
+       RFC_MODE mode;             /* connection mode (see below)
+                                   */
+       void *   connopt;          /* If connopt = NULL, the
+                                   * 'sideinfo'
+                                   * file is used to determine the
+                                   * the connection parameters.
+                                   * (see CPIC documentation)
+                                   *
+                                   * Without 'sideinfo' file 
+                                   * 'connopt' must point to a
+                                   * structure 
+                                   * of type RFC_CONNOPT_R3ONLY
+                                   * or RFC_CONNOPT_CPIC depending
+                                   * on the value of 'mode'.
+                                   */
+    
+       /* sign on data */
+       char *   client;           /* client                      
+                                   */
+       char *   user;             /* user id                     
+                                   */
+       char *   password;         /* password                    
+                                   */
+       char *   language;         /* language                    
+                                   */
+    
+       /* options */
+       int      trace;            /* trace (written to 'dev_rfc')
+                                   */
+    }
+    RFC_OPTIONS;
+    
+
+The field  destination points to a logical name for the
+destination. The fields client, user, password and language are
+the necessary sign on data for the receiving SAP system. The
+field mode contains the RFC protocol type that is to be used.
+There are now two values supported : RFC_MODE_R3ONLY and
+RFC_MODE_CPIC. The value RFC_MODE_R3ONLY can only be used for
+connecting to R/3 systems, whereas RFC_MODE_CPIC can be used for
+R/2-  and R/3-connections, but only with user id of type CPIC. 1
+
+If the field trace contains a non zero value, the outgoing and
+incoming data are written to a trace file dev_rfc in the actual
+directory. Also a trace file is written by the target system.2
+
+If connopt is NULL, the destination name is used to determine the
+data being necessary for establishing the connection (see  the
+documentation of SAP CPIC and the description of the sideinfo
+file therein).  If connopt is not NULL, it must point to some
+data structure depending on the value of  mode.
+
+If mode is RFC_MODE_R3ONLY, then connopt must point to 
+    
+    typedef struct
+    {
+        char * hostname;          /* Hostname of the target system
+                                    */
+        int    sysnr;             /* System number (0-99) of the
+                                   * target 
+                                   */
+        char * gateway_host;      /* Hostname of the SAP gateway 
+                                   * (if NULL, the gateway runs on
+                                   * 'hostname')
+                                   */
+        char * gateway_service;   /* TCP/IP-Service of the
+                                   * gateway 
+                                   * (If NULL, the service is
+                                   * sapgwXX, 
+                                   *  where XX is 'sysnr')
+                                   */ 
+    }
+    RFC_CONNOPT_R3ONLY;
+
+If mode is RFC_MODE_CPIC, then connopt must point to 
+
+    typedef struct
+    {
+        char * gateway_host;         /* Hostname of the SAP gateway
+                                      */
+        char * gateway_service;      /* TCP/IP-Service of the
+                                      * gateway 
+                                      */
+    }
+    RFC_CONNOPT_CPIC;
+
+and the connection parameters are defined at the SAP gateway.
+Only connections thru SNA are possible then.
+
+The structures RFC_OPTIONS, RFC_CONNOPT_R3ONLY and
+RFC_CONNOPT_CPIC should always be cleared by 
+
+    memset( address, 0, sizeof( .... ) );
+    
+before filling them, because they may be increased in future
+releases.
+
+The function
+
+    void RfcClose( RFC_HANDLE handle ) 
+
+closes a connection and
+    
+    void RfcAbort( RFC_HANDLE handle , char * text )
+
+closes the connection with error. If handle is RFC_HANDLE_NULL
+all connections are closed. If a text is supplied with RfcAbort,
+this text is used as error message on the receiving side.  
+
+The function
+
+    RFC_HANDLE RfcAccept(  char ** argv )
+
+accepts an incoming connection and has to be used, if the program
+was started by an RFC call issued by a SAP system or an other
+program using this API. The command line (argv) has to be passed
+to this function.  
+
+To build up the structures RFC_OPTIONS, RFC_CONNOPT_R3ONLY and
+RFC_CONNOPT_CPIC from the command line there is a function
+
+    int RfcConnArgv(     char **               argv, 
+                         RFC_OPTIONS *         rfc_opt,
+                         RFC_CONNOPT_CPIC *    connopt_cpic,
+                         RFC_CONNOPT_R3ONLY *  connopt_r3only );
+    
+
+which allows filling the options structures from a command line.
+The following tokens are recognized in the argv array, which must
+terminate by a NULL entry :
+
+  * -d <Destination>     the name of the destination
+  * -c  <NNN>            client (sign on data)
+  * -u <User Id>              user id
+  * -p <Password>        password
+  * -l  <language>            language
+  * -3                                R/3 mode
+  * -2                        CPIC mode
+  * -t                             turn trace on
+  * -h <Hostname>   the name of the target host 
+  * -s <NN>                   the system number of the target SAP
+    system
+  * -g <Gateway Host>    the gateway host (if not specified, the
+    -h option is used)
+  * -x <Gateway Service>  the TCP/IP service of the gateway (
+    default is sapgwNN, where NN is the system number (-s)
+    
+All tokens that were interpreted by RfcConnArgv are removed from
+the argv array.
+
+
+Calling an RFC  function
+
+An RFC function is called by
+    
+    RFC_RC RfcCall( RFC_HANDLE             handle,
+                    char *                 function,
+                    RFC_PARAMETER *        parameters,
+                    RFC_TABLE *            tables  );
+    
+The return value is RFC_OK or RFC_FAILURE. The structures
+RFC_PARAMETER and  RFC_TABLE contain the name and the description
+of the parameters and tables (internal ABAP/4 table) of the
+function's interface. The function RfcCall returns after the call
+request is send.
+
+
+
+
+
+
+Receiving an answer
+
+The function
+    
+    RFC_RC RfcReceive( RFC_HANDLE              handle,
+                       RFC_PARAMETER *         parameters,
+                       RFC_TABLE *             tables,
+                       char **                 exception
+                      );
+
+allows to receive the answer to an RFC call and must be called
+after RfcCall was issued. The tables' description (RFC_TABLE)
+must be identical to the one used in RfcCall. 
+
+The function RfcReceive waits till the answer is received and
+returns RFC_OK, RFC_FAILURE, RFC_EXCEPTION, RFC_SYS_EXCEPTION or
+RFC_CALL. The return codes have the following meaning.
+
+* RFC_OK means that the call was successfully completed and that
+  the values of the returned parameters were filled into the
+  fields being supplied by the RFC_PARAMETER array.
+* RFC_FAILURE means that an internal error has occurred.
+  RfcLastError may give more information.
+* RFC_EXCEPTION means that the callee has raised an exception.
+  The field '*exception' points to the name of the exception. No
+  data were transported.
+* RFC_SYS_EXCEPTION means that the local or remote RFC system has
+  raised an exception. Also '*exception' points to the name of
+  the exception. The connection was automatically closed by the
+  system and RfcLastError may give more information on the origin
+  of the error. Two exceptions may occur now: SYSTEM_FAILURE and
+  COMMUNICATION_FAILURE.
+* RFC_CALL means that the callee has issued an RFC call to the
+  caller of RfcReceive. No data are transported. The call request
+  must be handled by using the functions RfcDispatch or by
+  RfcGetName, RfcGetData and RfcSendData before an other call to
+  RfcReceive can be done. 
+
+
+Calling and receiving by one function call
+
+There also is a function that does an RFC call synchronously:
+  
+    RFC_RC RfcCallReceive( RFC_HANDLE            handle,
+                           char *                function,
+                           RFC_PARAMETER *       exporting,
+                           RFC_PARAMETER *       importing,
+                           RFC_TABLE *           tables,
+                           char **               exception )
+     
+is waiting till the returned answer was received. The return
+values are the same than for RfcReceive.
+ 
+
+
+Parameters and internal tables
+
+Almost all the RFC send and receive functions have  two
+parameters, where the exported or imported fields and the
+referenced 'internal tables' are specified. The parameters are
+pointers
+to arrays of the following structure (the arrays have to be
+terminated by an entry with 'name'  equal to NULL ):
+
+     typedef struct
+     {
+        void *   name;  /* Name of the field (in the interface 
+                         * definition of the function)     
+                         */
+        unsigned nlen;  /* Length of the name 
+                         * (should be strlen(name))
+                         */
+        unsigned type;  /* Datatype of the field 
+                         */
+        void *   addr;  /* Address of the field to be exported 
+                         * or imported 
+                         */ 
+        unsigned leng;  /* Length of the field in Bytes 
+                         */
+     }
+     RFC_PARAMETER;
+     
+     
+ The supported ABAP/4 data types are defined in saprfc.h. 
+
+Data type  C typedef     Length   Description
+                         in Bytes                               
+TYPC       RFC_CHAR[ ]   1-65535  Characters, blank padded at
+                                  the end                       
+TYPX       RFC_BYTE[ ]   1-65535  Binary data
+TYPP       RFC_BCD[ ]    1-16     BCD numbers ('packed
+                                  decimals')                    
+TYPINT     RFC_INT       4        Integer
+TYPFLOAT   RFC_FLOAT     8        Floating point
+TYPDATE    RFC_DATE      8        Date ( "YYYYMMDD" )
+TYPTIME    RFC_TIME      6        Time ( "HHMMSS" )
+
+
+Only scalar data types are supported in the moment. The support
+for records (structures) will be added later.
+
+The structure of RFC_TABLE is similar.
+
+     typedef struct
+     {
+        void *   name;      /* Name of the table (in the
+     interface 
+                             * definition of the function)     
+                             */
+        unsigned nlen;      /* Length of the name 
+                             * (should be strlen(name))
+                             */
+        unsigned type;      /* Data type of the lines of the
+                             * table
+                             */
+        unsigned leng;      /* Width of the table 
+                             */
+        ITAB_H   itab_h;    /* Table handle (type ITAB_H), 
+                             * i.e. the address of 
+                             * the control structure of the 
+                             * internal table. 3 itab_h must be
+                             * supplied
+                             * by the calling program in RfcCall
+                             * etc.
+                             * When receiving a call via
+                             * RfcGetData 
+                             * itab_h is filled by RfcGetData.
+                             */
+        IT_MODE itmode;     /* Only for RfcGetData. Here one
+                             * specifies
+                             * if the table shall be passed by
+                             * reference
+                             * (ITMODE_BYREFERENCE) or by value 
+                             * (ITMODE_BYVALUE).
+                             */
+      
+     }
+     RFC_TABLE;
+    
+Here also one can enter only scalar data types, so only one
+column tables and tables with similar columns (only TYPC or only
+TYPX fields) are supported in the moment.
+
+
+
+Listening for RFC events
+
+If one does not always want to wait for the answer to an RFC call
+by RfcReceive one has to call the function 
+
+               RFC_RC RfcListen(  RFC_HANDLE handle );
+
+to listen for incoming RFC events. The function returns  RFC_OK,
+if there is an RFC event pending (call or return) and  RFC_RETRY,
+if nothing has arrived yet. The function returns RFC_FAILURE, if
+an error has occurred . The function always returns immediately.
+If RfcListen returns RFC_OK, RfcReceive has to be called to
+handle the event. It only is possible  to listen for one incoming
+RFC message at a time.
+
+
+
+Receiving an RFC call
+
+For receiving an RFC call there are two possible ways. The most
+simple way to receive an RFC call in an external program is to
+register a C function to be called if a call request is received.
+The function 
+
+    RFC_RC RfcInstallFunction( RFC_FUNCTIONNAME functionname,
+                               RFC_ONCALL       function_pointer,
+                               char *           description );
+with
+    typedef RFC_RC ( * RFC_ONCALL ) ( RFC_HANDLE handle );
+    
+registers a C function to be called when receiving the request
+for an RFC call.  function_pointer points to a function of type 
+     
+    RFC_RC function ( RFC_HANDLE handle ),
+
+which contains the functionality being offered as an RFC function
+module. functionname is the name of the offered RFC function
+module and description should contain a description of  the
+functionality as well as a description of the interface. Newline
+characters can be used to start new lines. The recommended format
+for a description is
+
+    general functionality...........
+    
+    IMPORTING 
+        FIELD_NAME_X               Type             Default Value
+           description of parameter........
+        ...
+    EXPORTING
+        FIELD_NAME_1               Type                  
+           description of parameter........
+       ...
+    TABLES
+        TABLE_NAME_1               Type   
+            description of table
+
+The descriptions of the registered functions can be requested by
+calling the function module RFC_DOCU.
+
+After RfcAccept or after receiving the return code RFC_CALL when
+calling RfcReceive the 
+program has to call 
+ 
+    RFC_RC RfcDispatch ( RFC_HANDLE handle );
+    
+which internally calls the corresponding registered function. The
+return code of the registered function is again returned by
+RfcDispatch. The function module RFC_DOCU is always offered by
+this function automatically. 4
+
+
+
+
+Receiving an RFC call directly
+
+It is also possible to receive RFC call directly. The function
+RfcGetName is used to get the name of the called function.
+
+
+    typedef char RFC_FUNCTIONNAME[31];
+    
+    void RfcGetName( RFC_HANDLE handle, RFC_FUNCTIONNAME name );
+    
+The calling program then has to determine the interface of the
+requested function module and to receive the parameters as within
+a function being installed via RfcInstallFunction.
+    
+Receiving the parameters
+    
+Within a registered function or after receiving the name of the
+called function by RfcGetName   the function RfcGetData can be
+used to receive the parameters of the function call.
+    
+    
+    void RfcGetData( RFC_HANDLE           handle, 
+                     RFC_PARAMETER *      parameters,
+                     RFC_TABLE *          tables  );
+
+
+Here the ITAB_H field in the RFC_TABLE record has to be
+initialized to NULL. The function RfcGetData fills in the
+corresponding table handle, which is either a newly created table
+or an already existing table, which was send to the caller via
+another RFC call.  The field  itmode in an RFC_TABLE record
+determines if a received table is passed by reference or by
+value.
+    
+    
+Sending back the answer
+
+
+To send back the answer to a caller the function RfcSendData is
+used.
+
+    
+    void RfcSendData(  RFC_HANDLE           handle, 
+                       RFC_PARAMETER *      parameters,
+                       RFC_TABLE *          tables );
+    
+The tables description (RFC_TABLE) must be the same than in the
+previous RfcGetData call.
+
+
+Raising an exception
+
+To raise an exception while processing a received RFC call the
+function
+
+    void RfcRaise( RFC_HANDLE handle, char * exception );
+
+can be used. 
+
+
+Environment
+
+The following function allows to supply functions for memory
+allocation and error handling to the RFC engine : 
+
+    void RfcEnvironment( RFC_ENV * new_env )
+    typedef struct 
+    {
+       void *  (* allocate )( void * old_ptr, size_t new_size );
+       void    (* errorhandler )( void );
+       /* more ....? */
+    }
+    RFC_ENV;
+
+If an allocate function is supplied (that is the address is not
+NULL), this function is called always if memory is allocated,
+resized or freed within the RFC engine. Memory is allocated by
+'allocate( NULL, size )', freed by 'allocate( address, 0 ) and
+reallocated by allocate(old_address,new_size ). The default
+memory allocation function, which is used, if RfcEnvironment was
+not called or if no allocate function is supplied, uses malloc,
+realloc and free of the standard C library.
+
+A supplied errorhandler function is called always if an error
+occurs within the RFC engine.
+
+The function RfcEnvironment shall be called with a completely
+cleared record RFC_ENV, either implicitly by
+    
+    static RFC_ENV rfcenv;
+    rfcenv.allocate = ....;
+    RfcEnvironment( &rfcenv );
+    
+or explicitly by
+    RFC_ENV rfcenv;
+    
+    memset( &rfcenv, 0, sizeof( rfcenv ) );
+    rfcenv.allocate = ....;
+    RfcEnvironment( &rfcenv );
+    
+to allow future increasing of the structure by SAP. 
+
+There is an additional function in the RFC API to get more
+information on the last error that occurred :
+
+    int RfcLastError( RFC_ERROR_INFO * errorinfo );
+
+with
+
+    typedef struct
+    {
+    char    key[32];
+    char    status[128];
+    char    message[256];
+    char    intstat[128];
+    }
+    RFC_ERROR_INFO;
+
+
+The function returns 1 if no error has occurred and 0 elsewhere.
+The structure RFC_ERROR_INFO is filled by the function with the
+following values:
+  * Key contains an error key to identify the error.
+  * Status contains the state of the connection (CPIC error code
+    and state,  conversation id, etc.)
+  * Message is a short message text describing the error (in
+    English). 
+  * Intstat tells the internal state of the RFC engine, when the
+    error occurred.
+Some values may not be available for dedicated errors.
+
+
+
+1 For connecting to R/3-systems with RFC_MODE_CPIC a 'sideinfo'
+file is necessary.
+2 If the target system is an R/3 system you can view the trace
+file by the ABAP/4 program RSRFCTRC.
+3 ITAB_H  typedef's to  void * .
+4 RfcInstallFunction and RfcDispatch are not available for WINDOWS 3.1.
