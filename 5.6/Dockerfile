@@ -45,6 +45,29 @@ COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 # Copy extra files to the image.
 COPY ./root/ /
 
+RUN mkdir /opt/app-root/sap
+RUN mkdir -p /usr/sap/rfcsdk
+RUN mkdir /opt/app-root/saprfc-ext
+
+# COPY ./rfclib/ /opt/app-root/sap/
+#COPY ./rfcsdk/ /usr/sap/rfcsdk/
+ADD ./rfcsdk.tar.gz /usr/sap
+ADD ./saprfc.tar.gz /opt/app-root
+
+RUN yum install -y centos-release-scl && \
+    INSTALL_PKGS="rh-php56-php-devel compat-libstdc++-33" && \
+    yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
+    rpm -V $INSTALL_PKGS && \
+    yum clean all -y
+
+RUN cd /opt/app-root/saprfc && \
+	phpize && \
+	./configure && \
+	make && \
+	make install && \
+	make clean
+
+RUN echo "extension=saprfc.so" > /etc/opt/rh/rh-php56/php.d/99-saprfc.ini
 # In order to drop the root user, we have to make some directories world
 # writeable as OpenShift default security model is to run the container under
 # random UID.
