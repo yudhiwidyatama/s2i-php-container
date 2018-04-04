@@ -1,0 +1,4 @@
+-rw-r--r-- 1 root root 62587782 Oct 29 11:40 oracle-instantclient12.1-basic-12.1.0.2.0-1.x86_64.rpm
+-rw-r--r-- 1 root root   634803 Oct 29 11:38 oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+-rw-r--r-- 1 root root   852271 Oct 29 11:38 oracle-instantclient12.1-sqlplus-12.1.0.2.0-1.x86_64.rpm
+

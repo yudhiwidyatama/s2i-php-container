@@ -45,6 +45,20 @@ COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 # Copy extra files to the image.
 COPY ./root/ /
 
+# PDO_OCI, OCI8 extensions
+RUN yum install -y iproute /root/oracle-instantclient12* && yum clean all -y && rm -rf /root/oracle-instantclient12*
+COPY ./oci8.so /opt/rh/rh-php56/root/usr/lib64/php/modules/
+
+COPY ./rh-php56-php-pdo_oci-5.6.25-1.el7.centos.x86_64.rpm /opt/app-root/
+
+RUN rpm -ivh /opt/app-root/rh-php56-php-pdo_oci-5.6.25-1.el7.centos.x86_64.rpm
+
+RUN echo "/usr/lib/oracle/12.1/client64/lib" > /etc/ld.so.conf.d/oracle12.conf 
+RUN ldconfig 
+
+RUN echo "extension=oci8.so" > /opt/rh/rh-php56/root/etc/php.d/20-oci8.ini
+RUN cp /opt/rh/rh-php56/root/etc/php.d/* /etc/opt/rh/rh-php56/php.d
+
 # In order to drop the root user, we have to make some directories world
 # writeable as OpenShift default security model is to run the container under
 # random UID.
