@@ -59,6 +59,8 @@ RUN sed -i -f /opt/app-root/etc/httpdconf.sed /opt/rh/httpd24/root/etc/httpd/con
     chmod -R a+rwx /etc/opt/rh/rh-php56 && \
     chmod -R a+rwx /opt/rh/httpd24/root/var/run/httpd
 
+RUN /root/appdynamics-php-agent/runme.sh && chmod g+xw -R /root/appdynamics-php-agent/proxy 
+
 USER 1001
 
 # Set the default CMD to print the usage of the language image
