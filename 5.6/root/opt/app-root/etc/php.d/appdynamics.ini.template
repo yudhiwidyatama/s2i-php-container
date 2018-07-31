@@ -1,0 +1,11 @@
+[AppDynamics Agent]
+extension = appdynamics_agent.so
+agent.log4cxx_config = /root/appdynamics-php-agent/php/conf/appdynamics_agent_log4cxx.xml
+agent.php_agent_root = /root/appdynamics-php-agent
+agent.controller.hostName = appdycon.telkom.co.id
+agent.controller.port = 8090
+agent.applicationName = ${OPENSHIFT_BUILD_NAMESPACE}
+agent.tierName = ${OPENSHIFT_APP_DNS}
+agent.nodeName = ${OPENSHIFT_BUILD_NAME}
+agent.accountName = customer1
+agent.accountAccessKey = SJ5b2m7d1$354

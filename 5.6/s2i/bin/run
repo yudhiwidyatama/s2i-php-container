@@ -24,6 +24,9 @@ export PHP_INI_SCAN_DIR=${PHP_INI_SCAN_DIR:-/etc/opt/rh/rh-php56/php.d}
 envsubst < /opt/app-root/etc/php.ini.template > /etc/opt/rh/rh-php56/php.ini
 envsubst < /opt/app-root/etc/php.d/10-opcache.ini.template > /etc/opt/rh/rh-php56/php.d/10-opcache.ini
 
+# NOTE: Generate Appdynamics INI File based on ENV
+envsubst < /opt/app-root/etc/php.d/appdynamics.ini.template > /etc/opt/rh/rh-php56/php.d/appdynamics_agent.ini
+
 export HTTPD_START_SERVERS=${HTTPD_START_SERVERS:-8}
 export HTTPD_MAX_SPARE_SERVERS=$((HTTPD_START_SERVERS+10))
 
