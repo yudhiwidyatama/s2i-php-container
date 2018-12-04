@@ -1,0 +1,14 @@
+FROM s2i-php70-oci8stage1
+
+
+USER root
+
+RUN yum-builddep -y rh-php70-php-7.0.27-1.el7.src.rpm
+RUN yum install -y rpm-build
+RUN mv /usr/include/oracle/12.1/client64/ldap.h /usr/include/oracle/12.1/client64/ldap.h.ori
+USER 1001
+RUN rpm -ivh rh-php56-php-5.6.25-1.el7.src.rpm
+# COPY ./php.spec /opt/app-root/src/rpmbuild/SPECS/php.spec
+RUN rpmbuild -bb rpmbuild/SPECS/php.spec --define 'scl rh-php70'
+# Set the default CMD to print the usage of the language image
+CMD $STI_SCRIPTS_PATH/usage
