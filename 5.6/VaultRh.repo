@@ -1,0 +1,7 @@
+[vaultrh]
+name=CentOS-7.4.1708 - RHVAULT
+# http://vault.centos.org/7.4.1708/sclo/x86_64/sclo/sclo-php56/
+baseurl=http://vault.centos.org/7.4.1708/sclo/$basearch/rh
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+enabled=0
