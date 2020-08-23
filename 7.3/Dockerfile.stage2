@@ -1,0 +1,64 @@
+FROM s2i-php-73:ora-stage1
+
+# This image provides an Apache+PHP environment for running PHP
+# applications.
+
+EXPOSE 8080
+EXPOSE 8443
+
+# Description
+# This image provides an Apache 2.4 + PHP 7.3 environment for running PHP applications.
+# Exposed ports:
+# * 8080 - alternative port for http
+
+ENV PHP_VERSION=7.3 \
+    PHP_VER_SHORT=73 \
+    NAME=php \
+    PATH=$PATH:/opt/rh/rh-php73/root/usr/bin
+
+ENV SUMMARY="Platform for building and running PHP $PHP_VERSION applications" \
+    DESCRIPTION="PHP $PHP_VERSION available as container is a base platform for \
+building and running various PHP $PHP_VERSION applications and frameworks. \
+PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers \
+to write dynamically generated web pages. PHP also offers built-in database integration \
+for several commercial and non-commercial database management systems, so writing \
+a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding \
+is probably as a replacement for CGI scripts."
+
+LABEL summary="${SUMMARY}" \
+      description="${DESCRIPTION}" \
+      io.k8s.description="${DESCRIPTION}" \
+      io.k8s.display-name="Apache 2.4 with PHP ${PHP_VERSION}" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="builder,${NAME},${NAME}${PHP_VER_SHORT},rh-${NAME}${PHP_VER_SHORT}" \
+      io.openshift.s2i.scripts-url="image:///usr/libexec/s2i" \
+      io.s2i.scripts-url="image:///usr/libexec/s2i" \
+      name="centos/${NAME}-${PHP_VER_SHORT}-centos7" \
+      com.redhat.component="rh-${NAME}${PHP_VER_SHORT}-container" \
+      version="${PHP_VERSION}" \
+      help="For more information visit https://github.com/sclorg/s2i-${NAME}-container" \
+      usage="s2i build https://github.com/sclorg/s2i-php-container.git --context-dir=${PHP_VERSION}/test/test-app centos/${NAME}-${PHP_VER_SHORT}-centos7 sample-server" \
+      maintainer="SoftwareCollections.org <sclorg@redhat.com>"
+
+RUN yum install -y /root/oracle-instantclient12* && \
+    scl enable rh-php73 'pecl install oci8' && \
+    yum clean all -y
+
+USER 1001
+
+RUN yumdownloader --source rh-php73-php-pdo
+
+USER root
+
+RUN yum install -y rpm-build
+RUN yum-builddep -y rh-php73-php-7.3.11-1.el7.src.rpm
+RUN mv /usr/include/oracle/12.1/client64/ldap.h /usr/include/oracle/12.1/client64/ldap.h.ori
+
+RUN echo 'abcd'
+
+USER 1001
+RUN rpm -ivh rh-php73-php-7.3.11-1.el7.src.rpm
+COPY ./php.spec /opt/app-root/src/rpmbuild/SPECS/php.spec
+
+USER 1001
+RUN rpmbuild -bb rpmbuild/SPECS/php.spec --define 'scl rh-php73'
