@@ -36,6 +36,8 @@ RUN yum install -y /root/oracle-instantclient12* && \
 
 USER 1001
 
+COPY ./VaultRh.repo /etc/yum.repos.d/VaultRh.repo
+
 RUN yumdownloader --enablerepo=vaultrh --source rh-php56-php-pdo
 
 USER root
@@ -68,6 +70,6 @@ RUN mv /usr/include/oracle/12.1/client64/ldap.h /usr/include/oracle/12.1/client6
 USER 1001
 RUN rpm -ivh rh-php56-php-5.6.25-1.el7.src.rpm
 COPY ./php.spec /opt/app-root/src/rpmbuild/SPECS/php.spec
-RUN rpmbuild -bb rpmbuild/SPECS/php.spec --define 'scl rh-php56'
+# RUN rpmbuild -bb rpmbuild/SPECS/php.spec --define 'scl rh-php56'
 # Set the default CMD to print the usage of the language image
 CMD $STI_SCRIPTS_PATH/usage

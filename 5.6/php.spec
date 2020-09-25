@@ -433,6 +433,11 @@ Group: Development/Languages
 %description pdo_oci
 blank
 
+%package mcrypt
+Summary:PHP Mcrypt extension
+Group: Development/Languages
+%description mcrypt
+Mcrypt extension for PHP
 %package mysqlnd
 Summary: A module for PHP applications that use MySQL databases
 Group: Development/Languages
@@ -1201,6 +1206,7 @@ sed -e 's:php-fpm.service:%{?scl_prefix}php-fpm.service:' \
 for mod in pgsql odbc ldap snmp xmlrpc \
     mysqlnd mysql mysqli pdo_mysql \
     pdo_oci \
+    mcrypt \
 %if %{with_imap}
     imap \
 %endif
@@ -1642,6 +1648,7 @@ fi
 %files dba -f files.dba
 %files pdo -f files.pdo
 %files pdo_oci -f files.pdo_oci
+%files mcrypt -f files.mcrypt
 %if %{with_tidy}
 %files tidy -f files.tidy
 %endif
