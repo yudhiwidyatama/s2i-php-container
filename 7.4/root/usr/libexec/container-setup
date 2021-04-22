@@ -38,16 +38,21 @@ chmod -R ug+r   /etc/pki/tls/private/localhost.key
 chown -R 1001:0 /etc/pki/tls/certs/localhost.crt
 chown -R 1001:0 /etc/pki/tls/private/localhost.key
 mkdir -p ${APP_ROOT}/etc
+
 chmod -R a+rwx ${APP_ROOT}/etc
 chmod -R a+rwx ${HTTPD_VAR_RUN}
 chown -R 1001:0 ${APP_ROOT}
+echo 'binary search separator'
 mkdir /tmp/sessions
 chmod -R a+rwx /tmp/sessions
 chown -R 1001:0 /tmp/sessions
+echo 'now chmod something'
 chown -R 1001:0 ${HTTPD_DATA_PATH}
-chmod -R a+rwx ${PHP_SYSCONF_PATH}
+echo chmod --quiet -R a+rwx ${PHP_SYSCONF_PATH}
+chmod --quiet -R a+rwx ${PHP_SYSCONF_PATH} || true
 
 mkdir -p ${PHP_CONTAINER_SCRIPTS_PATH}/pre-init
-
+echo 'run config general'
 config_general
+echo 'done finished'
 
