@@ -8,4 +8,4 @@ agent.applicationName = Openshift-${OPENSHIFT_BUILD_NAMESPACE}
 agent.tierName = ${OPENSHIFT_BUILD_NAME}
 agent.nodeName = ${HOSTNAME}
 agent.accountName = customer1
-agent.accountAccessKey = SJ5b2m7d1$354
+agent.accountAccessKey = ${APPD_KEY}
