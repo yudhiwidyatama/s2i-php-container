@@ -1,0 +1,57 @@
+name: Build and push images to Quay.io registry
+on:
+  push:
+    branches:
+      - master
+  schedule:
+      - cron: '0 1 * * 3'
+
+jobs:
+  build-and-push:
+    if: github.repository_owner == 'sclorg'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: "Dockerfile"
+            dockerfile_path: "7.3"
+            registry_namespace: "centos7"
+            quayio_username: "QUAY_IMAGE_BUILDER_USERNAME"
+            quayio_token: "QUAY_IMAGE_BUILDER_TOKEN"
+            tag: "centos7"
+            suffix: "centos7"
+          - dockerfile: "Dockerfile"
+            dockerfile_path: "7.4"
+            registry_namespace: "centos7"
+            quayio_username: "QUAY_IMAGE_BUILDER_USERNAME"
+            quayio_token: "QUAY_IMAGE_BUILDER_TOKEN"
+            tag: "centos7"
+            suffix: "centos7"
+          - dockerfile: "Dockerfile.c9s"
+            dockerfile_path: "7.4"
+            registry_namespace: "sclorg"
+            quayio_username: "QUAY_IMAGE_SCLORG_BUILDER_USERNAME"
+            quayio_token: "QUAY_IMAGE_SCLORG_BUILDER_TOKEN"
+            tag: "c9s"
+            suffix: "c9s"
+          - dockerfile: "Dockerfile.fedora"
+            dockerfile_path: "8.0"
+            registry_namespace: "fedora"
+            quayio_username: "QUAY_IMAGE_FEDORA_BUILDER_USERNAME"
+            quayio_token: "QUAY_IMAGE_FEDORA_BUILDER_TOKEN"
+            tag: "8.0"
+
+    steps:
+      - name: Build and push to quay.io registry
+        uses: sclorg/build-and-push-action@v2
+        with:
+          registry: "quay.io"
+          registry_namespace: ${{ matrix.registry_namespace }}
+          registry_username: ${{ secrets[matrix.quayio_username] }}
+          registry_token: ${{ secrets[matrix.quayio_token] }}
+          dockerfile: ${{ matrix.dockerfile }}
+          docker_context: ${{ matrix.dockerfile_path }}
+          dockerfile_path: ${{ matrix.dockerfile_path }}
+          tag: ${{ matrix.tag }}
+          suffix: ${{ matrix.suffix }}

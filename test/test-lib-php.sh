@@ -12,8 +12,7 @@ source ${THISDIR}/test-lib.sh
 source ${THISDIR}/test-lib-openshift.sh
 
 function test_php_integration() {
-  local image_name=$1
-  ct_os_test_s2i_app "${image_name}" \
+  ct_os_test_s2i_app "${IMAGE_NAME}" \
                      "https://github.com/sclorg/s2i-php-container.git" \
                      "test/test-app" \
                      "Test PHP passed"
@@ -26,7 +25,7 @@ function test_php_imagestream() {
     *) echo "Imagestream testing not supported for $OS environment." ; return 0 ;;
   esac
 
-  ct_os_test_image_stream_s2i "${THISDIR}/imagestreams/php-${OS}.json" "${IMAGE_NAME}" \
+  ct_os_test_image_stream_s2i "${THISDIR}/imagestreams/php-${OS%[0-9]*}.json" "${IMAGE_NAME}" \
                               "https://github.com/sclorg/s2i-php-container.git" \
                               test/test-app \
                               "Test PHP passed"
