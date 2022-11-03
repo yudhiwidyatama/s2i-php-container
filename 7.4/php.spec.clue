@@ -1,3 +1,8 @@
+16c16
+< %global __requires_exclude libclntsh.*
+---
+> 
+
 databases.
 
 %package pdo_oci
