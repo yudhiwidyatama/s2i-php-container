@@ -45,7 +45,7 @@ RUN yum -y module enable php:$PHP_VERSION && \
     INSTALL_PKGS="php php-mysqlnd php-pgsql php-bcmath \
                   php-gd php-intl php-json php-ldap php-mbstring php-pdo \
                   php-process php-soap php-opcache php-xml \
-                  php-gmp php-pecl-apcu php-devel mod_ssl hostname" && \
+                  php-gmp php-pecl-apcu php-pecl-zip mod_ssl hostname" && \
     yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
     yum reinstall -y tzdata && \
     rpm -V $INSTALL_PKGS && \
@@ -71,3 +71,14 @@ COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 # Copy extra files to the image.
 COPY ./root/ /
 
+RUN yum install -y --setopt=tsflags=nodocs php-devel php-pear && rpm -V php-devel && yum -y clean all --enablerepo='*'
+RUN yum install -y /root/oracle-instantclient19* /root/libnsl-2.28-189.5.el8_6.x86_64.rpm && \
+    pecl install oci8-2.2.0 && \
+    yum clean all -y
+# Reset permissions of filesystem to default values
+RUN /usr/libexec/container-setup && rpm-file-permissions
+
+USER 1001
+
+# Set the default CMD to print the usage of the language image
+CMD $STI_SCRIPTS_PATH/usage

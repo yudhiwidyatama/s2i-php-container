@@ -1,0 +1,8 @@
+total 129064
+-rw-r--r--@ 1 yudhi  staff    104220 Nov  3 20:19 libnsl-2.28-189.5.el8_6.x86_64.rpm
+-rw-r--r--@ 1 yudhi  staff    106260 Nov  3 20:16 libnsl-2.28-211.el8.x86_64.rpm
+-rw-r--r--@ 1 yudhi  staff  53507732 Nov  3 19:40 oracle-instantclient19.17-basic-19.17.0.0.0-1.x86_64.rpm
+-rw-r--r--@ 1 yudhi  staff    614160 Nov  3 19:38 oracle-instantclient19.17-devel-19.17.0.0.0-1.x86_64.rpm
+-rw-r--r--@ 1 yudhi  staff    703352 Nov  3 19:39 oracle-instantclient19.17-sqlplus-19.17.0.0.0-1.x86_64.rpm
+-rw-r--r--@ 1 yudhi  staff  10497974 Nov  3 20:42 php-7.4.19-4.module+el8.6.0+16316+906f6c6d.src.rpm
+-rw-r--r--  1 yudhi  staff         0 Nov  3 21:41 stage1.list.txt
