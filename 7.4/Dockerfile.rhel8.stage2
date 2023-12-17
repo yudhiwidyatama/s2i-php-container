@@ -77,7 +77,7 @@ RUN yum install -y /root/oracle-instantclient19* /root/libnsl-2.28-189.5.el8_6.x
     yum clean all -y
 
 # this command failed on ubi8, need to run with RHEL entitlements
-#RUN yum-builddep -y /root/php-7.4.19-4.module+el8.6.0+16316+906f6c6d.src.rpm
+RUN yum-builddep -y /root/php-7.4.19-4.module+el8.6.0+16316+906f6c6d.src.rpm
 
 # Reset permissions of filesystem to default values
 RUN /usr/libexec/container-setup && rpm-file-permissions
