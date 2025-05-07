@@ -1,0 +1,1 @@
+docker build --platform linux/amd64 --build-arg USERNAME=marco.cbnusantara@gmail.com --build-arg PASSWORD=pass! -f Dockerfile.stage2 -t marcophp81-2 .
